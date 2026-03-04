@@ -1,0 +1,163 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Gestor | AlianceFood SaaS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: LOGIN SAAS
+           ========================================== */
+        :root {
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --bg-dark: #020617; /* Slate 950 */
+            --card-bg: rgba(15, 23, 42, 0.7); /* Slate 900 com transparência */
+            --text-main: #F8FAFC; 
+            --text-muted: #94A3B8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            height: 100vh; margin: 0;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+            color: var(--text-main);
+        }
+
+        /* --- EFEITOS ESPACIAIS (ORBES) --- */
+        .orb-1 { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,107,0,0.15) 0%, transparent 70%); top: -100px; right: -100px; border-radius: 50%; animation: floatOrb 10s ease-in-out infinite; z-index: 0; }
+        .orb-2 { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); bottom: -50px; left: -50px; border-radius: 50%; animation: floatOrb 8s ease-in-out infinite reverse; z-index: 0; }
+        @keyframes floatOrb { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.05); } 100% { transform: translateY(0) scale(1); } }
+
+        /* --- CARD DE LOGIN (GLASSMORPHISM) --- */
+        .login-card {
+            background: var(--card-bg);
+            width: 100%; max-width: 420px;
+            padding: 50px 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            text-align: center;
+            position: relative; z-index: 10;
+            animation: slideUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .brand-icon {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 2rem; color: white;
+            box-shadow: 0 10px 25px rgba(255, 107, 0, 0.4);
+            transform: rotate(-5deg); transition: 0.3s;
+        }
+        .login-card:hover .brand-icon { transform: rotate(0deg) scale(1.05); }
+
+        h2 { font-weight: 900; color: white; margin-bottom: 5px; letter-spacing: -1px; font-size: 1.8rem;}
+        p.subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 35px; font-weight: 500; }
+
+        /* --- INPUTS PREMIUM --- */
+        .input-group-custom { text-align: left; margin-bottom: 20px; }
+        .input-group-custom label {
+            display: block; color: var(--text-muted); font-size: 0.8rem;
+            font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+        }
+        .form-control { 
+            background: rgba(255, 255, 255, 0.03); 
+            border: 2px solid rgba(255, 255, 255, 0.1); 
+            color: white; padding: 15px 20px; 
+            border-radius: 14px; font-weight: 600; font-size: 1.05rem;
+            transition: 0.3s;
+        }
+        .form-control:focus { 
+            background: rgba(255, 255, 255, 0.05); color: white;
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(255, 107, 0, 0.15); 
+        }
+        .form-control::placeholder { color: rgba(255,255,255,0.2); font-weight: 400; }
+
+        /* --- BOTÃO DE ACESSO --- */
+        .btn-login {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white; width: 100%; padding: 18px;
+            border-radius: 14px; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px;
+            border: none; margin-top: 15px; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+        }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 107, 0, 0.4); }
+        .btn-login:active { transform: scale(0.98); }
+
+        /* --- LINKS E ALERTAS --- */
+        .alert-custom {
+            background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #FCA5A5; font-weight: 700; border-radius: 12px; padding: 12px;
+            font-size: 0.9rem; margin-bottom: 25px;
+        }
+
+        .footer-link {
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 30px;
+            color: var(--text-muted); font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: 0.2s;
+        }
+        .footer-link:hover { color: white; }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+
+    <div class="login-card">
+        <div class="brand-icon">
+            <i class="fas fa-bolt"></i>
+        </div>
+        
+        <h2>Torre de Controle</h2>
+        <p class="subtitle">Acesse o painel do seu restaurante</p>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert-custom">
+                <i class="fas fa-exclamation-triangle me-1"></i> Credenciais inválidas. Tente novamente.
+            </div>
+            {% endif %}
+
+            <div class="input-group-custom">
+                <label for="id_username">Usuário Administrador</label>
+                <input type="text" name="username" class="form-control" id="id_username" placeholder="Digite seu usuário" required autofocus autocomplete="off">
+            </div>
+
+            <div class="input-group-custom">
+                <label for="id_password">Senha de Segurança</label>
+                <input type="password" name="password" class="form-control" id="id_password" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn-login">
+                ENTRAR NO SISTEMA <i class="fas fa-arrow-right"></i>
+            </button>
+            
+            <input type="hidden" name="next" value="{{ next|default:'/dashboard/' }}">
+        </form>
+
+        <a href="/" class="footer-link">
+            <i class="fas fa-arrow-left"></i> Voltar ao site principal
+        </a>
+    </div>
+
+</body>
+</html>

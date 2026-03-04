@@ -1,0 +1,371 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Salão | AlianceFood</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: GESTÃO DE MESAS PRO
+           ========================================== */
+        :root { 
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --text-dark: #0F172A; 
+            --text-muted: #64748B;
+            --bg-app: #F4F7FE; 
+            --card-bg: #FFFFFF;
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 15px 35px rgba(255, 107, 0, 0.15);
+            --radius-lg: 24px;
+        }
+
+        body { 
+            background-color: var(--bg-app); 
+            font-family: 'Inter', sans-serif; 
+            padding-bottom: 50px; 
+            margin: 0;
+        }
+
+        /* --- CABEÇALHO INDEPENDENTE --- */
+        .page-header { 
+            background: var(--card-bg); 
+            padding: 20px 0; 
+            margin-bottom: 40px; 
+            box-shadow: var(--shadow-sm); 
+            border-bottom: 1px solid rgba(0,0,0,0.03); 
+            position: sticky; top: 0; z-index: 1000;
+        }
+        
+        .brand-logo { font-weight: 900; font-size: 1.4rem; color: var(--text-dark); display: flex; align-items: center; gap: 10px; text-decoration: none;}
+        .brand-logo i { color: var(--primary); font-size: 1.6rem; }
+        
+        .btn-voltar { background: #F8FAFC; color: var(--text-muted); font-weight: 800; border-radius: 50px; padding: 10px 24px; text-decoration: none; transition: 0.3s; border: 1px solid #E2E8F0; display: inline-flex; align-items: center; gap: 8px;}
+        .btn-voltar:hover { background: var(--text-dark); color: white; border-color: var(--text-dark); }
+        
+        .btn-refresh { background: linear-gradient(135deg, var(--text-dark), #334155); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-weight: 800; transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: inline-flex; align-items: center; gap: 8px;}
+        .btn-refresh:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); color: white;}
+
+        /* --- CARDS DE MESA --- */
+        .mesa-card {
+            background: var(--card-bg); border-radius: var(--radius-lg); padding: 25px;
+            display: flex; flex-direction: column; justify-content: space-between;
+            height: 100%; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden;
+        }
+
+        /* Estado: LIVRE */
+        .mesa-livre { border: 2px dashed #CBD5E1; background: rgba(255,255,255,0.6); box-shadow: none; }
+        .mesa-livre:hover { border-color: var(--text-muted); background: white; transform: translateY(-5px); }
+        .status-livre { background: #F1F5F9; color: var(--text-muted); padding: 6px 14px; border-radius: 50px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+        .icon-livre { font-size: 3.5rem; color: #E2E8F0; margin: 20px 0; transition: 0.3s;}
+        .mesa-livre:hover .icon-livre { color: #10B981; transform: scale(1.1); }
+
+        /* Estado: OCUPADA */
+        .mesa-ocupada { border: 2px solid var(--primary); box-shadow: 0 10px 25px rgba(255,107,0,0.1); }
+        .mesa-ocupada:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+        .status-ocupada { background: var(--primary); color: white; padding: 6px 14px; border-radius: 50px; font-weight: 900; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(255,107,0,0.3);}
+        
+        .mesa-title { font-size: 1.4rem; font-weight: 900; color: var(--text-dark); margin: 0; }
+        .mesa-total { font-size: 2.2rem; font-weight: 900; color: var(--text-dark); letter-spacing: -1px; margin: 15px 0 5px; line-height: 1;}
+        .mesa-itens { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* --- BOTÕES --- */
+        .btn-cobrar { background: var(--text-dark); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 900; width: 100%; transition: 0.3s; font-size: 1.05rem; letter-spacing: 0.5px;}
+        .btn-cobrar:hover { background: var(--primary); box-shadow: 0 8px 20px rgba(255,107,0,0.3); transform: translateY(-2px);}
+        
+        .btn-qr { background: transparent; color: var(--text-muted); border: 2px solid #E2E8F0; padding: 12px; border-radius: 14px; font-weight: 800; width: 100%; transition: 0.3s; text-decoration: none; display: block;}
+        .btn-qr:hover { border-color: var(--text-dark); color: var(--text-dark); }
+
+        /* --- MODAL FINTECH (PAGAMENTO) --- */
+        .modal-content { border-radius: var(--radius-lg); border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); overflow: hidden;}
+        .modal-header-custom { background: #F8FAFC; padding: 25px 30px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;}
+        .modal-title-custom { font-weight: 900; color: var(--text-dark); margin: 0; font-size: 1.3rem;}
+        .btn-close-custom { background: white; border: 1px solid #E2E8F0; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;}
+        .btn-close-custom:hover { background: #EF4444; color: white; border-color: #EF4444; }
+
+        .fintech-total { font-size: 3.5rem; font-weight: 900; color: var(--primary); letter-spacing: -2px; margin: 10px 0 30px; line-height: 1;}
+        
+        .form-select-fintech { 
+            background: #F1F5F9; border: 2px solid transparent; color: var(--text-dark); 
+            padding: 18px 20px; border-radius: 16px; font-size: 1.1rem; font-weight: 800; 
+            transition: 0.3s; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .form-select-fintech:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(255,107,0,0.1); outline: none;}
+
+        .btn-confirm { background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; padding: 20px; border-radius: 16px; font-weight: 900; width: 100%; transition: 0.3s; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(16,185,129,0.3);}
+        .btn-confirm:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(16,185,129,0.4); }
+        .btn-confirm:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="container-fluid px-4 px-xl-5 d-flex justify-content-between align-items-center">
+            
+            <div class="d-flex align-items-center gap-4">
+                <a href="{% url 'dashboard' %}" class="brand-logo">
+                    <i class="fas fa-bolt"></i> 
+                    <div>
+                        <div style="line-height: 1;">AlianceFood</div>
+                        <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Gestão de Salão</div>
+                    </div>
+                </a>
+                
+                <div class="d-none d-md-flex align-items-center gap-3 ms-4 ps-4 border-start">
+                    <div style="width: 45px; height: 45px; background: #FFF5F0; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--primary);">
+                        <i class="fas fa-th-large"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px; font-size: 1.2rem;">Controle de Mesas</h4>
+                        <p class="mb-0 text-muted small fw-bold text-uppercase">{{ restaurante.nome|default:"Minha Loja" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-3">
+                <button class="btn-refresh" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt"></i> <span class="d-none d-sm-inline">Atualizar</span>
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn-voltar">
+                    <i class="fas fa-times"></i> <span class="d-none d-sm-inline">Fechar</span>
+                </a>
+            </div>
+            
+        </div>
+    </header>
+
+    <div class="container-fluid px-4 px-xl-5">
+        <div class="row g-4">
+            {% for m in mesas %}
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                
+                {% if m.ocupada %}
+                    <div class="mesa-card mesa-ocupada">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h4 class="mesa-title">Mesa {{ m.obj.numero }}</h4>
+                            <span class="status-ocupada"><div class="spinner-grow spinner-grow-sm me-1" style="width: 6px; height: 6px; animation-duration: 1.5s;" role="status"></div> Ocupada</span>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <div class="mesa-total">R$ {{ m.total|floatformat:2 }}</div>
+                            <div class="mesa-itens"><i class="fas fa-shopping-basket me-1"></i> {{ m.pedidos }} itens consumidos</div>
+                        </div>
+                        
+                        <button class="btn-cobrar" onclick="abrirCobranca({{ m.obj.numero }}, '{{ m.total }}')">
+                            COBRAR MESA <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                {% else %}
+                    <div class="mesa-card mesa-livre">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h4 class="mesa-title text-muted">Mesa {{ m.obj.numero }}</h4>
+                            <span class="status-livre">Livre</span>
+                        </div>
+                        
+                        <div class="text-center">
+                            <i class="fas fa-chair icon-livre"></i>
+                        </div>
+                        
+                        <a href="{% url 'gerar_qrcode' m.obj.id %}" target="_blank" class="btn-qr text-center">
+                            <i class="fas fa-qrcode me-2"></i> Exibir QR Code
+                        </a>
+                    </div>
+                {% endif %}
+
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCobranca" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                
+                <div class="modal-header-custom">
+                    <h5 class="modal-title-custom"><i class="fas fa-cash-register me-2" style="color: var(--primary);"></i> Fechar Mesa <span id="cobMesaNum"></span></h5>
+                    <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <div class="modal-body p-5 text-center" id="modalCobrancaBody">
+                    
+                    <p class="text-muted fw-bold mb-0 text-uppercase small" style="letter-spacing: 1px;">Total a Receber</p>
+                    <div class="fintech-total">R$ <span id="cobMesaTotal"></span></div>
+                    
+                    <div class="text-start mb-4">
+                        <label class="text-muted fw-bold small mb-2 ms-1">MÉTODO DE PAGAMENTO</label>
+                        <select id="formaPgto" class="form-select w-100 form-select-fintech" onchange="mudarPgto()">
+                            <option value="DINHEIRO">💵 Dinheiro em Espécie</option>
+                            <option value="CARTAO">💳 Maquininha de Cartão</option>
+                            <option value="PIX">📱 PIX (QR Code Automático)</option>
+                        </select>
+                    </div>
+
+                    <div id="areaPix" style="display: none;" class="mb-4">
+                        <button id="btnGerarPix" class="btn btn-dark w-100 fw-bold rounded-4 py-3 shadow-sm" style="font-size: 1.1rem;" onclick="gerarPix()">
+                            <i class="fas fa-qrcode me-2 text-warning"></i> GERAR CÓDIGO PIX
+                        </button>
+                        <div id="qrCodeContainer" class="mt-4"></div>
+                    </div>
+
+                    <button id="btnConfirmar" class="btn-confirm" onclick="confirmarPagamento()">
+                        CONFIRMAR RECEBIMENTO <i class="fas fa-check-circle ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let mesaAtualCobrar = null;
+        let radarPix = null;
+        let modalCobranca = null;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            modalCobranca = new bootstrap.Modal(document.getElementById('modalCobranca'));
+            
+            document.getElementById('modalCobranca').addEventListener('hidden.bs.modal', function () {
+                if(radarPix) clearInterval(radarPix);
+            });
+        });
+
+        function abrirCobranca(numero, totalStr) {
+            mesaAtualCobrar = numero;
+            const totalNum = parseFloat(String(totalStr).replace(',', '.'));
+            
+            document.getElementById('cobMesaNum').innerText = numero;
+            document.getElementById('cobMesaTotal').innerText = totalNum.toFixed(2).replace('.', ',');
+            
+            document.getElementById('formaPgto').value = 'DINHEIRO';
+            mudarPgto();
+            
+            document.getElementById('qrCodeContainer').innerHTML = '';
+            const btnPix = document.getElementById('btnGerarPix');
+            btnPix.style.display = 'block';
+            btnPix.disabled = false;
+            btnPix.innerHTML = '<i class="fas fa-qrcode me-2 text-warning"></i> GERAR CÓDIGO PIX';
+            
+            document.getElementById('btnConfirmar').style.display = 'block';
+            
+            if (radarPix) clearInterval(radarPix);
+            if (modalCobranca) modalCobranca.show();
+        }
+
+        function mudarPgto() {
+            const val = document.getElementById('formaPgto').value;
+            document.getElementById('areaPix').style.display = (val === 'PIX') ? 'block' : 'none';
+            document.getElementById('btnConfirmar').style.display = 'block'; 
+        }
+
+        function gerarPix() {
+            const btn = document.getElementById('btnGerarPix');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Conectando ao Banco...';
+            btn.disabled = true;
+
+            fetch(`/api/gerar_pix_operador/${mesaAtualCobrar}/`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso') {
+                    btn.style.display = 'none'; 
+                    
+                    document.getElementById('qrCodeContainer').innerHTML = `
+                        <div class="bg-white p-4 rounded-4 text-center" style="border: 2px solid var(--primary); box-shadow: 0 10px 30px rgba(255,107,0,0.15);">
+                            <img src="data:image/png;base64,${data.qr_base64}" class="img-fluid rounded mb-3" style="width: 220px; height: 220px;">
+                            <h5 id="pix-status-text" class="fw-bold m-0" style="color: var(--primary);">Aguardando Pagamento.</h5>
+                        </div>
+                    `;
+
+                    if (radarPix) clearInterval(radarPix);
+                    let contadorPontos = 0;
+
+                    radarPix = setInterval(() => {
+                        contadorPontos++;
+                        const texto = document.getElementById("pix-status-text");
+                        if(texto) {
+                            let pontos = ".".repeat((contadorPontos % 4) + 1);
+                            texto.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i> Aguardando Pagamento${pontos}`;
+                        }
+
+                        fetch(`/api/status_pix_mesa/${mesaAtualCobrar}/`, {
+                            method: 'POST', 
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        })
+                        .then(r => r.json())
+                        .then(statusData => {
+                            if(statusData.ocupada === false) {
+                                clearInterval(radarPix); 
+                                
+                                document.getElementById('qrCodeContainer').innerHTML = `
+                                    <div class="py-4 text-center">
+                                        <div style="width: 80px; height: 80px; background: #10B981; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 2.5rem; box-shadow: 0 10px 25px rgba(16,185,129,0.4);">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <h3 class="fw-bold text-dark mb-1">PIX Aprovado!</h3>
+                                        <p class="text-muted fw-bold">O dinheiro está no caixa e a mesa foi liberada.</p>
+                                    </div>
+                                `;
+                                document.getElementById('btnConfirmar').style.display = 'none'; 
+                                
+                                setTimeout(() => { window.location.reload(); }, 3000);
+                            }
+                        })
+                        .catch(err => console.log("Procurando pagamento..."));
+                    }, 3000);
+
+                } else {
+                    alert('Erro do banco: ' + data.msg);
+                    btn.innerHTML = '<i class="fas fa-qrcode me-2 text-warning"></i> GERAR CÓDIGO PIX';
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                alert('Falha na conexão com o servidor.');
+                btn.innerHTML = '<i class="fas fa-qrcode me-2 text-warning"></i> GERAR CÓDIGO PIX';
+                btn.disabled = false;
+            });
+        }
+
+        function confirmarPagamento() {
+            const pgto = document.getElementById('formaPgto').value;
+            const btn = document.getElementById('btnConfirmar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> PROCESSANDO...';
+            btn.disabled = true;
+
+            fetch(`/api/receber_mesa/${mesaAtualCobrar}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ 
+                    forma_pagamento: pgto,
+                    restaurante_id: '{{ restaurante.id }}' 
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso') {
+                    window.location.reload(); 
+                } else {
+                    alert('Erro: ' + data.msg);
+                    btn.innerHTML = 'CONFIRMAR RECEBIMENTO <i class="fas fa-check-circle ms-2"></i>';
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                alert('Falha na comunicação.');
+                btn.innerHTML = 'CONFIRMAR RECEBIMENTO <i class="fas fa-check-circle ms-2"></i>';
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

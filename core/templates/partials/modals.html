@@ -1,0 +1,54 @@
+<div class="modal fade" id="prodModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 30px; border: none; overflow: hidden;">
+            <img id="m-img" src="" style="height: 250px; object-fit: cover;">
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h2 id="m-name" style="font-weight: 800; font-size: 1.5rem;"></h2>
+                    <h3 id="m-price" style="color: var(--primary); font-weight: 700;"></h3>
+                </div>
+                <p id="m-desc" class="text-muted my-3"></p>
+                
+                <div class="d-flex align-items-center gap-3 mt-4">
+                    <div style="background: var(--bg); padding: 10px 20px; border-radius: 15px; display: flex; gap: 15px; align-items: center;">
+                        <i class="fas fa-minus" onclick="updateQty(-1)" style="cursor: pointer;"></i>
+                        <span id="m-qty" style="font-weight: 800; font-size: 1.2rem;">1</span>
+                        <i class="fas fa-plus" onclick="updateQty(1)" style="cursor: pointer;"></i>
+                    </div>
+                    <button class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-lg" onclick="addToCart()" style="background: var(--primary); border:none;">
+                        Adicionar <span id="m-total-btn" style="opacity: 0.8; margin-left: 5px;"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="checkoutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-4" style="border-radius: 30px; border: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 style="font-weight: 800; margin: 0;">Finalizar Pedido</h3>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="mb-3">
+                <label class="fw-bold small text-muted">SEU NOME</label>
+                <input type="text" id="cliNome" class="form-control form-control-lg bg-light border-0" style="border-radius: 12px;">
+            </div>
+            <div class="mb-4">
+                <label class="fw-bold small text-muted">WHATSAPP</label>
+                <input type="tel" id="cliZap" class="form-control form-control-lg bg-light border-0" style="border-radius: 12px;" placeholder="(00) 90000-0000">
+            </div>
+
+            <div class="d-flex justify-content-between mb-4 p-3 bg-light rounded-4">
+                <span class="fw-bold">Total a Pagar:</span>
+                <span id="checkoutTotal" class="fw-bold text-danger fs-5">R$ 0,00</span>
+            </div>
+
+            <button onclick="enviarPedido()" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-lg" style="background: var(--primary); border:none;">
+                CONFIRMAR PEDIDO 🚀
+            </button>
+        </div>
+    </div>
+</div>

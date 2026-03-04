@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Cardápio | AlianceFood</title>
+    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: ALIANCEFOOD PRO
+           ========================================== */
+        :root { 
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --text-dark: #0F172A; 
+            --text-muted: #64748B;
+            --bg-app: #F4F7FE; 
+            --card-bg: #FFFFFF;
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.03);
+            --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.05);
+            --radius-md: 16px;
+        }
+
+        body { background: var(--bg-app); font-family: 'Inter', sans-serif; color: var(--text-dark); padding-bottom: 50px; }
+        
+        /* Cabeçalho */
+        .page-header { background: var(--card-bg); padding: 25px 0; margin-bottom: 40px; box-shadow: var(--shadow-sm); border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .btn-voltar { background: #F8FAFC; color: var(--text-muted); font-weight: 800; border-radius: 50px; padding: 8px 20px; text-decoration: none; transition: 0.3s; border: 1px solid #E2E8F0; }
+        .btn-voltar:hover { background: var(--text-dark); color: white; border-color: var(--text-dark); }
+
+        /* Tabela Premium */
+        .table-card { background: var(--card-bg); border-radius: 24px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.02); }
+        .table-hover tbody tr:hover { background-color: #F8FAFC; }
+        .table th { border-bottom: 2px solid #F1F5F9; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; padding: 15px; }
+        .table td { vertical-align: middle; padding: 15px; border-bottom: 1px solid #F1F5F9; }
+
+        .prod-img { width: 55px; height: 55px; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .img-placeholder { width: 55px; height: 55px; background: #FFF5F0; color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        /* Botões e Ações */
+        .btn-add { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; border: none; padding: 12px 25px; border-radius: 50px; font-weight: 800; box-shadow: 0 10px 20px rgba(255,107,0,0.25); transition: 0.3s; }
+        .btn-add:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255,107,0,0.35); color: white;}
+        
+        .btn-edit { background: #F1F5F9; color: var(--text-muted); border: none; width: 40px; height: 40px; border-radius: 10px; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-edit:hover { background: var(--text-dark); color: white; transform: scale(1.05); }
+
+        /* Switch Customizado AlianceFood */
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);}
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Formulários do Django Renderizados */
+        .modal-body input, .modal-body select, .modal-body textarea { 
+            width: 100%; padding: 12px 15px; border: 2px solid #E2E8F0; 
+            border-radius: 12px; margin-bottom: 15px; font-family: 'Inter', sans-serif; font-weight: 600; color: var(--text-dark); outline: none; transition: 0.3s;
+        }
+        .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus { border-color: var(--primary); }
+        .modal-body label { font-weight: 800; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="page-header">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div style="width: 50px; height: 50px; background: #FFF5F0; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary);">
+                    <i class="fas fa-hamburger"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-0 text-dark" style="letter-spacing: -1px;">Gestão de Cardápio</h3>
+                    <p class="mb-0 text-muted small fw-bold text-uppercase">{{ restaurante.nome|default:"Minha Loja" }}</p>
+                </div>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn-voltar"><i class="fas fa-arrow-left me-2"></i> Voltar ao Painel</a>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-dark m-0">Seus Produtos</h5>
+            <button class="btn-add" data-bs-toggle="modal" data-bs-target="#modalNovo">
+                <i class="fas fa-plus me-2"></i> Adicionar Produto
+            </button>
+        </div>
+
+        <div class="table-card overflow-auto">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4">Produto</th>
+                        <th>Categoria</th>
+                        <th>Preço</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in produtos %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if p.imagem %}
+                                    <img src="{{ p.imagem.url }}" class="prod-img">
+                                {% else %}
+                                    <div class="img-placeholder"><i class="fas fa-camera"></i></div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size: 1.05rem;">{{ p.nome }}</div>
+                                    <div class="small text-muted text-truncate" style="max-width: 250px;">{{ p.descricao|default:"Sem descrição" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge bg-light text-secondary border px-3 py-2 rounded-pill fw-bold">{{ p.categoria.nome }}</span></td>
+                        <td class="fw-bold" style="color: var(--primary); font-size: 1.1rem;">R$ {{ p.preco }}</td>
+                        <td>
+                            <label class="switch" title="Ativar/Pausar Venda">
+                                <input type="checkbox" {% if p.ativo %}checked{% endif %} onchange="toggleProduto({{ p.id }})">
+                                <span class="slider"></span>
+                            </label>
+                        </td>
+                        <td class="text-end pe-4">
+                            <button class="btn-edit" 
+                                    hx-get="{% url 'editar_produto' p.id %}" 
+                                    hx-target="#form-edicao" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalEditar"
+                                    title="Editar Produto">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
+                            <h5 class="fw-bold">Cardápio Vazio</h5>
+                            <p>Clique em "Adicionar Produto" para começar a vender.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNovo" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                    <h4 class="fw-bold m-0 text-dark">Novo Produto</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <label>Nome do Produto</label>
+                        {{ form.nome }}
+                        
+                        <div class="row">
+                            <div class="col-6">
+                                <label>Preço de Venda (R$)</label>
+                                {{ form.preco }}
+                            </div>
+                            <div class="col-6">
+                                <label>Categoria</label>
+                                {{ form.categoria }}
+                            </div>
+                        </div>
+                        
+                        <label>Descrição (Aparece no App)</label>
+                        {{ form.descricao }}
+                        
+                        <label>Foto do Produto</label>
+                        {{ form.imagem }}
+                        
+                        <div class="form-check form-switch mt-2 mb-4 d-flex align-items-center gap-2">
+                            {{ form.ativo }}
+                            <label class="form-check-label m-0 mt-1" style="text-transform: none; font-size: 0.95rem;">Produto disponível para venda agora</label>
+                        </div>
+                        
+                        <button type="submit" class="btn-add w-100 py-3">SALVAR PRODUTO <i class="fas fa-check-circle ms-2"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditar" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                    <h4 class="fw-bold m-0 text-dark">Editar Produto</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="form-edicao">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" style="color: var(--primary);" role="status"></div>
+                        <p class="mt-2 text-muted fw-bold">Carregando dados...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleProduto(id) {
+            fetch(`/api/toggle/${id}/`, { method: 'POST' })
+            .catch(err => alert('Erro ao alterar status. Verifique sua conexão.'));
+        }
+
+        // 🚀 O DETETOR DE ERROS DO HTMX
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            const erroCode = evt.detail.xhr.status;
+            document.getElementById('form-edicao').innerHTML = `
+                <div class="alert alert-danger text-center fw-bold rounded-4 p-4 border-0">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5 class="fw-bold text-danger">Ops! Erro de Conexão (${erroCode})</h5>
+                    <p class="small mb-0">O sistema não encontrou o arquivo <b>modal_produto.html</b>. Certifique-se que ele foi criado na pasta <b>templates/core/partials/</b>.</p>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

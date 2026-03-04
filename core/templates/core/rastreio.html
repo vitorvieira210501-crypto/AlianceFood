@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Acompanhar Pedido #{{ pedido.id }} | {{ config.nome|default:"AlianceFood" }}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: RASTREIO ULTRA PREMIUM
+           ========================================== */
+        :root {
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --success: #10B981;
+            --dark-bg: #020617; /* Slate 950 */
+            --dark-card: #0F172A;
+            --light-bg: #F4F7FE;
+            --card-bg: #FFFFFF;
+        }
+
+        body { 
+            background-color: var(--light-bg); 
+            font-family: 'Outfit', sans-serif; 
+            margin: 0; padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* --- HEADER APP NATIVO --- */
+        .app-hero {
+            background: radial-gradient(circle at 100% 0%, var(--dark-card), var(--dark-bg));
+            color: white; 
+            padding: 20px 20px 90px; 
+            border-bottom-left-radius: 40px; border-bottom-right-radius: 40px;
+            position: relative; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Navbar Superior (Voltar) */
+        .top-nav {
+            display: flex; justify-content: space-between; align-items: center;
+            position: relative; z-index: 10; margin-bottom: 30px;
+        }
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.15);
+            color: white; text-decoration: none; padding: 10px 18px; border-radius: 50px;
+            font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        .btn-back:hover { background: rgba(255, 255, 255, 0.2); color: white; transform: translateX(-3px);}
+        .store-name { font-weight: 800; font-size: 1rem; opacity: 0.9; letter-spacing: 0.5px;}
+
+        /* Efeitos Visuais Cinéticos */
+        .orb-1 { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,107,0,0.2) 0%, transparent 70%); top: -50px; right: -50px; border-radius: 50%; animation: floatOrb 8s ease-in-out infinite; z-index: 0; }
+        .orb-2 { position: absolute; width: 250px; height: 250px; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%); bottom: -20px; left: -50px; border-radius: 50%; animation: floatOrb 10s ease-in-out infinite reverse; z-index: 0; }
+        @keyframes floatOrb { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
+
+        .hero-content { position: relative; z-index: 10; text-align: center; }
+        .order-badge { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            padding: 6px 16px; border-radius: 50px; font-weight: 900; font-size: 0.8rem; 
+            letter-spacing: 1px; display: inline-block; margin-bottom: 15px; color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 0, 0.4);
+        }
+        .hero-title { font-weight: 900; font-size: 2.2rem; margin: 0; letter-spacing: -1px; }
+        .hero-subtitle { color: #94A3B8; font-weight: 500; font-size: 1rem; margin-top: 5px; }
+
+        /* --- CARD DE RASTREIO (GLASSMORPHISM) --- */
+        .tracking-card {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px; padding: 35px 25px;
+            margin: -60px 20px 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            position: relative; z-index: 20; border: 1px solid rgba(255,255,255,0.5);
+            animation: slideUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- MAPA PREMIUM --- */
+        #map-container {
+            width: 100%; height: 250px; border-radius: 20px; overflow: hidden;
+            margin-top: 5px; margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
+            border: 4px solid white; display: none; 
+            animation: fadeIn 1s ease-in-out;
+        }
+        .map-alert { 
+            background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); 
+            color: #2563EB; padding: 12px; border-radius: 14px; font-weight: 800; 
+            font-size: 0.9rem; text-align: center; margin-bottom: 20px; 
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        /* --- LINHA DO TEMPO (STEPPER) COM EFEITOS --- */
+        .stepper { display: flex; flex-direction: column; gap: 28px; position: relative; }
+        .stepper::before { content: ''; position: absolute; top: 15px; bottom: 30px; left: 24px; width: 3px; background: #E2E8F0; z-index: 1; border-radius: 5px;}
+
+        .step { display: flex; align-items: flex-start; gap: 18px; position: relative; z-index: 2; opacity: 0.3; transition: 0.5s ease; }
+        .step.completed { opacity: 1; }
+        .step.active { opacity: 1; transform: scale(1.02); transform-origin: left center;}
+        
+        .step-icon {
+            width: 50px; height: 50px; border-radius: 50%; background: #F1F5F9;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; color: #94A3B8; font-weight: bold; flex-shrink: 0;
+            border: 4px solid white; transition: 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        /* Cores Dinâmicas */
+        .step.completed .step-icon { background: var(--dark-card); color: white; border-color: white;}
+        .step.active .step-icon { background: var(--primary); color: white; border-color: white; box-shadow: 0 0 0 6px rgba(255, 107, 0, 0.15); }
+        
+        /* Animação Pulso do Status Atual */
+        @keyframes pulseActive { 0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(255, 107, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); } }
+        .step.active .step-icon { animation: pulseActive 2s infinite; }
+
+        /* Passo Final Verde */
+        .step.final.completed .step-icon { background: var(--success); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); animation: none;}
+
+        .step-content { padding-top: 10px; }
+        .step-title { font-weight: 900; color: var(--text-dark); margin: 0; font-size: 1.2rem; letter-spacing: -0.5px;}
+        .step-desc { color: #64748B; font-size: 0.9rem; margin: 2px 0 0; font-weight: 500;}
+
+        /* --- BOTOES --- */
+        .btn-whatsapp {
+            background: linear-gradient(135deg, #25D366, #1EBE57); color: white; 
+            font-weight: 800; font-size: 1.1rem; border-radius: 16px;
+            padding: 18px; display: flex; justify-content: center; align-items: center; gap: 10px;
+            text-decoration: none; margin-top: 40px; transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3); letter-spacing: 0.5px;
+            position: relative; overflow: hidden;
+        }
+        /* Efeito de brilho no botão do zap */
+        .btn-whatsapp::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.4), transparent); transform: skewX(-20deg); animation: shine 4s infinite; }
+        @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+        .btn-whatsapp:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4); color: white;}
+        .btn-whatsapp:active { transform: scale(0.98); }
+
+    </style>
+</head>
+<body>
+
+<div class="app-hero">
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+    
+    <div class="top-nav">
+        <a href="/loja/{{ config.slug|default:'' }}/" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Voltar à Loja
+        </a>
+        <div class="store-name">{{ config.nome|default:"AlianceFood" }}</div>
+    </div>
+
+    <div class="hero-content">
+        <div class="order-badge"><i class="fas fa-hashtag me-1"></i> {{ pedido.id }}</div>
+        
+        {% if pedido.status == 'NOVO' %}
+            <h1 class="hero-title">Analisando...</h1>
+            <p class="hero-subtitle">A loja está a confirmar o seu pedido.</p>
+        {% elif pedido.status == 'CONFIRMADO' %}
+            <h1 class="hero-title">Na Chapa! 🔥</h1>
+            <p class="hero-subtitle">Tudo a ser preparado com carinho.</p>
+        {% elif pedido.status == 'PRONTO' %}
+            <h1 class="hero-title">Tudo Pronto! 📦</h1>
+            <p class="hero-subtitle">Aguardando a retirada.</p>
+        {% elif pedido.status == 'EM_TRANSITO' %}
+            <h1 class="hero-title">A Caminho! 🛵💨</h1>
+            <p class="hero-subtitle">Prepare a mesa, estamos a chegar.</p>
+        {% elif pedido.status == 'ENTREGUE' %}
+            <h1 class="hero-title text-success">Entregue! ✅</h1>
+            <p class="hero-subtitle text-light">Bom apetite e volte sempre.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="tracking-card">
+    
+    {% if pedido.status == 'NOVO' and pedido.forma_pagamento == 'PIX' %}
+        <div class="alert text-center fw-bold p-3 mb-4 rounded-4" style="background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px dashed rgba(16, 185, 129, 0.3);">
+            <i class="fas fa-check-circle fs-3 mb-2 d-block"></i>
+            PIX Aprovado! Recebemos o seu pagamento.
+        </div>
+    {% endif %}
+
+    {% if pedido.status == 'EM_TRANSITO' and pedido.origem != 'MESA' and pedido.origem != 'BALCAO' %}
+        <div class="map-alert"><div class="spinner-grow spinner-grow-sm" role="status"></div> Abertura de GPS Ativada</div>
+        <div id="map-container" style="display: block;"></div>
+    {% endif %}
+
+    <div class="stepper">
+        <div class="step {% if pedido.status in 'NOVO,CONFIRMADO,PRONTO,EM_TRANSITO,ENTREGUE' %}completed{% endif %} {% if pedido.status == 'NOVO' %}active{% endif %}">
+            <div class="step-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="step-content">
+                <p class="step-title">Pedido Enviado</p>
+                <p class="step-desc">Aguardando a confirmação do restaurante.</p>
+            </div>
+        </div>
+
+        <div class="step {% if pedido.status in 'CONFIRMADO,PRONTO,EM_TRANSITO,ENTREGUE' %}completed{% endif %} {% if pedido.status == 'CONFIRMADO' %}active{% endif %}">
+            <div class="step-icon"><i class="fas fa-fire-burner"></i></div>
+            <div class="step-content">
+                <p class="step-title">Preparando</p>
+                <p class="step-desc">O chef já começou a fazer o seu pedido!</p>
+            </div>
+        </div>
+
+        <div class="step {% if pedido.status in 'PRONTO,EM_TRANSITO,ENTREGUE' %}completed{% endif %} {% if pedido.status == 'PRONTO' %}active{% endif %}">
+            <div class="step-icon"><i class="fas fa-box-open"></i></div>
+            <div class="step-content">
+                <p class="step-title">Pedido Embalado</p>
+                <p class="step-desc">Tudo pronto! Aguardando o entregador.</p>
+            </div>
+        </div>
+
+        <div class="step {% if pedido.status in 'EM_TRANSITO,ENTREGUE' %}completed{% endif %} {% if pedido.status == 'EM_TRANSITO' %}active{% endif %}">
+            <div class="step-icon"><i class="fas fa-motorcycle"></i></div>
+            <div class="step-content">
+                <p class="step-title">Em Rota de Entrega</p>
+                <p class="step-desc">O motoboy está voando até você!</p>
+            </div>
+        </div>
+
+        <div class="step final {% if pedido.status == 'ENTREGUE' %}completed active{% endif %}">
+            <div class="step-icon"><i class="fas fa-heart"></i></div>
+            <div class="step-content">
+                <p class="step-title">Pedido Entregue</p>
+                <p class="step-desc">Muito obrigado pela preferência! 🍔</p>
+            </div>
+        </div>
+    </div>
+
+    <a href="https://wa.me/55{{ config.telefone|default:'21983904738'|cut:' '|cut:'-' }}?text=Olá!%20Gostaria%20de%20falar%20sobre%20o%20meu%20pedido%20%23{{ pedido.id }}." target="_blank" class="btn-whatsapp">
+        <i class="fab fa-whatsapp fs-3"></i> Falar com o Restaurante
+    </a>
+
+</div>
+
+<script>
+    const statusAtual = "{{ pedido.status }}";
+    
+    // --- LÓGICA DO MAPA AO VIVO ---
+    if (document.getElementById('map-container')) {
+        
+        let latLanchonete = parseFloat("{{ config.latitude|default:'-22.783200' }}".replace(',', '.')); 
+        let lngLanchonete = parseFloat("{{ config.longitude|default:'-43.430200' }}".replace(',', '.'));
+
+        let lat = parseFloat("{{ lat_inicial|default:'0' }}".replace(',', '.')) || latLanchonete;
+        let lng = parseFloat("{{ lng_inicial|default:'0' }}".replace(',', '.')) || lngLanchonete;
+        
+        // Retiramos os controles de zoom para ficar mais limpo estilo iFood
+        var map = L.map('map-container', { zoomControl: false, dragging: false, scrollWheelZoom: false });
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        var lojaIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448658.png', 
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        });
+        L.marker([latLanchonete, lngLanchonete], {icon: lojaIcon}).addTo(map);
+
+        var motoIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/1048/1048314.png', 
+            iconSize: [45, 45],
+            iconAnchor: [22, 45] 
+        });
+        
+        var markerMoto = L.marker([lat, lng], {icon: motoIcon})
+         .addTo(map)
+         .bindPopup("<b>Seu Pedido</b><br>A caminho!")
+         .openPopup();
+
+        var bounds = L.latLngBounds([[latLanchonete, lngLanchonete], [lat, lng]]);
+        map.fitBounds(bounds, {padding: [30, 30], maxZoom: 16});
+
+        // 🚀 RADAR DO MOTOBOY (API SAAS)
+        {% if pedido.status == 'EM_TRANSITO' %}
+        setInterval(function() {
+            fetch(`/api/localizacao_motoboy/{{ pedido.id_pedido }}/`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'ok' && data.lat && data.lng) {
+                    var newLat = parseFloat(data.lat);
+                    var newLng = parseFloat(data.lng);
+                    var newLatLng = new L.LatLng(newLat, newLng);
+                    markerMoto.setLatLng(newLatLng);
+                }
+            })
+            .catch(err => console.log("A aguardar GPS do motoboy..."));
+        }, 5000); 
+        {% endif %}
+    }
+
+    // --- REFRESH INTELIGENTE DA PÁGINA ---
+    if (statusAtual !== 'ENTREGUE' && statusAtual !== 'CANCELADO') {
+        setTimeout(function() {
+            window.location.reload(1);
+        }, 20000); 
+    }
+</script>
+</body>
+</html>

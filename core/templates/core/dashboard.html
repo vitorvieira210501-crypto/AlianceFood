@@ -1,0 +1,533 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torre de Controle | AlianceFood SaaS</title>
+    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: ALIANCEFOOD EXECUTIVE
+           ========================================== */
+        :root { 
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --primary-dark: #CC5500;
+            --bg-app: #F4F7FE; 
+            --text-dark: #0F172A; 
+            --text-muted: #64748B;
+            --card-bg: #FFFFFF; 
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.03);
+            --shadow-hover: 0 15px 35px rgba(255, 107, 0, 0.15);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+        }
+        
+        body { background-color: var(--bg-app); font-family: 'Inter', sans-serif; color: var(--text-dark); padding-bottom: 80px; overflow-x: hidden; }
+        
+        /* --- CABEÇALHO IMERSIVO (OCEANO LARANJA) --- */
+        .dash-header { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            padding: 30px 0 100px; 
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 30px rgba(255, 107, 0, 0.2);
+        }
+        .orb-1 { position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); top: -100px; right: -50px; border-radius: 50%; animation: floatOrb 10s ease-in-out infinite; }
+        .orb-2 { position: absolute; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); bottom: -50px; left: 10%; border-radius: 50%; animation: floatOrb 8s ease-in-out infinite reverse; }
+        @keyframes floatOrb { 0% { transform: translateY(0); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0); } }
+
+        .brand-saas { font-weight: 900; font-size: 1.6rem; letter-spacing: -0.5px; display: flex; align-items: center; gap: 10px; color: white; text-decoration: none; position: relative; z-index: 2;}
+        .brand-saas i { font-size: 1.8rem; color: #FFF0E6; text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        
+        .user-pill {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px; padding: 6px 20px 6px 6px; display: flex; align-items: center; gap: 12px;
+            backdrop-filter: blur(10px); color: white; position: relative; z-index: 2;
+        }
+        .user-avatar {
+            width: 38px; height: 38px; background: white; color: var(--primary);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .main-content { max-width: 1400px; margin: -60px auto 0; position: relative; z-index: 10; padding: 0 20px; }
+
+        /* --- QUICK ACTIONS --- */
+        .nav-card {
+            background: var(--card-bg); border-radius: var(--radius-md); padding: 22px 20px;
+            text-decoration: none; color: var(--text-dark);
+            display: flex; align-items: center; gap: 15px;
+            border: 1px solid rgba(255,107,0,0.05); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: var(--shadow-sm);
+        }
+        .nav-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); border-color: var(--primary-light); }
+        .nav-icon {
+            width: 55px; height: 55px; border-radius: 14px;
+            background: #FFF5F0; color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; flex-shrink: 0; transition: 0.3s;
+        }
+        .nav-card:hover .nav-icon { background: var(--primary); color: white; transform: scale(1.1) rotate(5deg); }
+        
+        .nav-info h5 { margin: 0; font-weight: 900; font-size: 1.05rem; }
+        .nav-info p { margin: 0; font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+
+        /* --- SESSÕES E KANBAN --- */
+        .section-title { font-weight: 900; font-size: 1.3rem; color: var(--text-dark); margin: 50px 0 25px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; }
+        .section-title i { color: var(--primary); background: #FFF5F0; padding: 10px; border-radius: 10px; font-size: 1.1rem;}
+        
+        .kanban-col { background: rgba(255,255,255,0.8); border-radius: var(--radius-lg); padding: 20px; height: 100%; min-height: 400px; border: 1px solid rgba(255,107,0,0.08); backdrop-filter: blur(10px); box-shadow: var(--shadow-sm); }
+        .col-header { font-weight: 900; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; color: var(--text-dark); text-transform: uppercase; letter-spacing: 1px; font-size: 0.95rem;}
+        
+        .order-card { background: white; border-radius: 14px; padding: 18px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border-left: 6px solid var(--text-muted); transition: all 0.3s; position: relative; cursor: pointer;}
+        .order-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 25px rgba(255,107,0,0.15); border-left-color: var(--primary); }
+        
+        .chart-box { background: var(--card-bg); border-radius: var(--radius-lg); padding: 30px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,107,0,0.05); height: 100%; transition: 0.3s;}
+        .chart-box:hover { box-shadow: var(--shadow-hover); }
+        
+        /* KPIs HTMX */
+        .kpi-card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,107,0,0.05); height: 100%; transition: 0.3s; display: flex; align-items: center; gap: 20px;}
+        .kpi-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+        .kpi-icon { width: 65px; height: 65px; border-radius: 16px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 5px 15px rgba(255,107,0,0.3);}
+        .kpi-val { font-size: 2.2rem; font-weight: 900; color: var(--text-dark); margin: 0; letter-spacing: -1px; }
+        .kpi-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;}
+
+        /* FAB */
+        .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        .btn-fab { background: var(--text-dark); color: white; border: none; padding: 16px 28px; border-radius: 50px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center; gap: 12px; cursor: pointer; border: 2px solid transparent; }
+        .btn-fab:hover { transform: scale(1.05) translateY(-5px); }
+        .btn-fab.active { background: white; color: var(--primary); border: 2px solid var(--primary); box-shadow: 0 10px 30px rgba(255,107,0,0.3); }
+
+        /* Animação */
+        .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; opacity: 0; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .d-delay-1 { animation-delay: 0.1s; } .d-delay-2 { animation-delay: 0.2s; } .d-delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body>
+
+    <header class="dash-header">
+        <div class="orb-1"></div>
+        <div class="orb-2"></div>
+        <div class="container-fluid" style="max-width: 1400px; position: relative; z-index: 2;">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="#" class="brand-saas">
+                    <i class="fas fa-bolt"></i>
+                    <div>
+                        <span style="display: block; line-height: 1;">AlianceFood</span>
+                        <span style="font-size: 0.75rem; font-weight: 600; opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; color: #FFF0E6;">{{ restaurante.nome|default:"Torre de Controle" }}</span>
+                    </div>
+                </a>
+                
+                <div class="d-flex align-items-center gap-3">
+                    
+                    <button onclick="copiarLinkLoja('{{ request.scheme }}://{{ request.get_host }}/loja/{{ restaurante.slug }}/')" class="btn rounded-pill px-3 py-2 fw-bold d-none d-md-inline-flex align-items-center shadow-sm" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; transition: 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                        <i class="fas fa-link me-2"></i> Copiar Meu Link
+                    </button>
+
+                    <span class="badge rounded-pill px-3 py-2 fw-bold d-none d-lg-inline-flex align-items-center shadow-sm" style="background: rgba(16, 185, 129, 0.2); backdrop-filter: blur(5px); border: 1px solid rgba(16, 185, 129, 0.4); color: white;">
+                        <div class="spinner-grow spinner-grow-sm text-white me-2" style="width: 8px; height: 8px; background-color: #10B981;" role="status"></div> ONLINE
+                    </span>
+                    
+                    <div class="user-pill d-none d-sm-flex shadow-sm">
+                        <div class="user-avatar">{{ user.username|first|upper }}</div>
+                        <div class="me-2">
+                            <p class="m-0 fw-bold" style="font-size: 0.95rem; line-height: 1;">{{ user.username|title }}</p>
+                            <p class="m-0" style="font-size: 0.7rem; font-weight: 600; opacity: 0.8;">Gestor Principal</p>
+                        </div>
+                    </div>
+                    
+                    <form action="{% url 'logout' %}" method="post" class="m-0">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-light rounded-circle shadow-sm" style="width: 45px; height: 45px; transition: 0.3s;" title="Sair" onmouseover="this.classList.add('text-danger')" onmouseout="this.classList.remove('text-danger')">
+                            <i class="fas fa-power-off"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        
+        <p class="text-muted fw-bold small text-uppercase mb-2 fade-in-up" style="letter-spacing: 1px;"><i class="fas fa-rocket me-1"></i> Frente de Loja</p>
+        <div class="row row-cols-2 row-cols-md-4 g-3 mb-4 fade-in-up">
+            <div class="col">
+                <a href="{% url 'caixa_balcao' %}" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-desktop"></i></div>
+                    <div class="nav-info"><h5>PDV Caixa</h5><p>Lançar Pedidos</p></div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="{% url 'painel_cozinha' %}" target="_blank" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-fire"></i></div>
+                    <div class="nav-info"><h5>Cozinha</h5><p>Tela KDS</p></div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="{% url 'painel_motoboy' %}" target="_blank" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-motorcycle"></i></div>
+                    <div class="nav-info"><h5>Entregas</h5><p>App Motoboy</p></div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="{% url 'gerenciar_mesas' %}" class="nav-card">
+                    <div class="nav-icon"><i class="fas fa-qrcode"></i></div>
+                    <div class="nav-info"><h5>Salão</h5><p>Mesas e QR</p></div>
+                </a>
+            </div>
+        </div>
+
+        <p class="text-muted fw-bold small text-uppercase mb-2 fade-in-up d-delay-1" style="letter-spacing: 1px;"><i class="fas fa-briefcase me-1"></i> Gestão do Negócio</p>
+        <div class="row row-cols-2 row-cols-md-3 g-3 mb-5 fade-in-up d-delay-1">
+            <div class="col">
+                <a href="{% url 'gerenciar_cardapio' %}" class="nav-card">
+                    <div class="nav-icon" style="background: #F1F5F9; color: var(--text-dark);"><i class="fas fa-hamburger"></i></div>
+                    <div class="nav-info"><h5>Cardápio</h5><p>Produtos e Preços</p></div>
+                </a>
+            </div>
+            <div class="col">
+               <a href="{% url 'configuracoes_loja' %}" class="nav-card">
+                    <div class="nav-icon" style="background: #F1F5F9; color: var(--text-dark);"><i class="fas fa-store"></i></div>
+                    <div class="nav-info"><h5>Minha Loja</h5><p>Cores e Horários</p></div>
+                </a>
+            </div>
+            <div class="col">
+                <a href="{% url 'minha_assinatura' %}" class="nav-card" style="border-color: #10B981; background: rgba(16,185,129,0.02);"> <div class="nav-icon" style="background: #10B981; color: white; box-shadow: 0 5px 15px rgba(16,185,129,0.3);"><i class="fas fa-star"></i></div>
+                    <div class="nav-info"><h5>Assinatura</h5><p>Meu Plano SaaS</p></div>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5 fade-in-up d-delay-1" 
+             hx-get="{% url 'htmx_kpis' %}" 
+             hx-trigger="every 30s" 
+             hx-swap="innerHTML">
+            {% include 'core/partials/h_kpis.html' %}
+        </div>
+
+        <div class="section-title fade-in-up d-delay-2">
+            <i class="fas fa-satellite-dish"></i> Radar de Pedidos Ao Vivo
+        </div>
+
+        <div class="row g-4 mb-5 fade-in-up d-delay-2">
+            <div class="col-lg-4 col-md-6">
+                <div class="kanban-col" style="border-top: 4px solid var(--primary);" hx-get="{% url 'htmx_novos' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+                    {% include 'core/partials/h_novos.html' %}
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6">
+                <div class="kanban-col" style="border-top: 4px solid var(--text-dark);" hx-get="{% url 'htmx_cozinha' %}" hx-trigger="every 5s" hx-swap="innerHTML">
+                    {% include 'core/partials/h_cozinha.html' %}
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-12">
+                <div class="kanban-col" style="border-top: 4px solid #10B981;" hx-get="{% url 'htmx_logistica' %}" hx-trigger="every 10s" hx-swap="innerHTML">
+                    {% include 'core/partials/h_logistica.html' %}
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title fade-in-up d-delay-3">
+            <i class="fas fa-chart-pie"></i> Inteligência e Faturamento
+        </div>
+        
+        <div class="row g-4 mb-5 fade-in-up d-delay-3">
+            <div class="col-lg-5">
+                <div class="chart-box">
+                    <h5 class="fw-bold mb-4 text-dark d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-line text-muted me-2"></i> Receita</span>
+                        <select class="form-select form-select-sm fw-bold border-0 bg-light" style="width: auto; cursor: pointer;">
+                            <option value="7">Últimos 7 dias</option>
+                            <option value="30">Últimos 30 dias</option>
+                            <option value="hoje">Hoje</option>
+                        </select>
+                    </h5>
+                    <canvas id="salesChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+            
+            <div class="col-lg-3">
+                <div class="chart-box">
+                    <h5 class="fw-bold mb-4 text-dark">
+                        <i class="fas fa-fire me-2" style="color: var(--primary);"></i> Top Produtos
+                    </h5>
+                    <canvas id="prodChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div id="painel-mesas-pagamento" class="h-100">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="fab-container">
+        <button id="btnAtivarSom" onclick="ativarSomCaixa()" class="btn-fab">
+            <i class="fas fa-volume-mute text-danger fs-5"></i> <span>Ativar Radar Sonoro</span>
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 🚀 NOVO: FUNÇÃO COPIAR LINK
+        function copiarLinkLoja(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert("✅ Link da sua loja copiado com sucesso!\n\nAgora é só colar no Instagram ou WhatsApp para seus clientes comprarem.");
+            }).catch(err => {
+                console.error("Erro ao copiar: ", err);
+                alert("Não foi possível copiar automaticamente. O seu link é: " + url);
+            });
+        }
+
+        // Configuração Global dos Gráficos
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748B';
+        Chart.defaults.font.weight = '600';
+
+        // Gráfico de Vendas
+        new Chart(document.getElementById('salesChart'), {
+            type: 'line',
+            data: {
+                labels: {{ grafico_datas|safe }},
+                datasets: [{
+                    label: 'Vendas (R$)',
+                    data: {{ grafico_valores|safe }},
+                    borderColor: '#FF6B00',
+                    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+                    borderWidth: 4, fill: true, tension: 0.4, 
+                    pointBackgroundColor: '#FFFFFF', pointBorderColor: '#FF6B00', pointBorderWidth: 2, pointRadius: 6, pointHoverRadius: 8
+                }]
+            },
+            options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#E2E8F0' } }, x: { grid: { display: false } } }, maintainAspectRatio: false }
+        });
+
+        // Gráfico de Produtos
+        new Chart(document.getElementById('prodChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ prod_labels|safe }},
+                datasets: [{
+                    data: {{ prod_valores|safe }},
+                    backgroundColor: ['#FF6B00', '#0F172A', '#FF9B4D', '#CBD5E1', '#FFD1B3'],
+                    borderWidth: 0, hoverOffset: 15
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } }, maintainAspectRatio: false }
+        });
+
+        // ==========================================
+        // LÓGICA DAS MESAS AGUARDANDO PAGAMENTO
+        // ==========================================
+        let mesaEmAtendimento = null; 
+
+        function verificarMesasAguardando() {
+            if(mesaEmAtendimento) return; 
+
+            fetch('/api/mesas_aguardando/')
+            .then(res => res.json())
+            .then(data => {
+                const painel = document.getElementById('painel-mesas-pagamento');
+                if(!painel) return;
+                
+                if(data.mesas && data.mesas.length > 0) {
+                    let html = `
+                        <div class="chart-box" style="border: 2px solid var(--primary); box-shadow: 0 0 20px rgba(255,107,0,0.15); animation: pulse 2s infinite;">
+                            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                                <h5 class="fw-bold m-0 text-dark"><i class="fas fa-cash-register me-2" style="color: var(--primary);"></i> Caixa Express</h5>
+                                <span class="badge rounded-pill" style="background: var(--primary); font-size: 0.8rem;">${data.mesas.length} na fila</span>
+                            </div>
+                            <div style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                    `;
+                    
+                    data.mesas.forEach(m => {
+                        html += `
+                            <div id="card-mesa-${m.mesa}" class="border rounded-4 p-4 mb-3 position-relative overflow-hidden" style="background: #F8FAFC;">
+                                <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(90deg, rgba(255,107,0,0.05) 0%, transparent 100%);"></div>
+                                <div class="position-relative z-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h5 class="fw-bold m-0 text-dark"><i class="fas fa-chair text-muted me-2"></i> Mesa ${m.mesa}</h5>
+                                        <span class="badge bg-dark">${m.qtd} itens</span>
+                                    </div>
+                                    <div class="fs-2 fw-900 mb-3" style="color: var(--primary); letter-spacing: -1px;">R$ ${m.total.toFixed(2)}</div>
+                                    <button onclick="abrirPagamentoMesa(${m.mesa}, ${m.total})" class="btn w-100 fw-bold rounded-pill text-white py-2" style="background: var(--text-dark); transition: 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                        COBRAR AGORA <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                    painel.innerHTML = html;
+                } else {
+                    painel.innerHTML = `
+                        <div class="chart-box d-flex flex-column align-items-center justify-content-center text-center text-muted" style="border: 2px dashed #E2E8F0; background: transparent; box-shadow: none;">
+                            <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 20px;">
+                                <i class="fas fa-check text-success fa-2x"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Caixa Livre</h5>
+                            <p class="mb-0">Nenhuma mesa aguardando pagamento neste momento.</p>
+                        </div>
+                    `; 
+                }
+            })
+            .catch(err => console.log("Verificando mesas..."));
+        }
+
+        setInterval(verificarMesasAguardando, 5000);
+        verificarMesasAguardando(); 
+
+        function abrirPagamentoMesa(mesaNumero, total) {
+            mesaEmAtendimento = mesaNumero; 
+            const card = document.getElementById(`card-mesa-${mesaNumero}`);
+            card.style.background = '#FFFFFF';
+            card.style.border = '2px solid var(--primary)';
+            card.style.transform = 'scale(1.02)';
+            card.style.boxShadow = '0 15px 35px rgba(255, 107, 0, 0.2)';
+            
+            card.innerHTML = `
+                <div class="text-center position-relative z-1">
+                    <h5 class="fw-bold mb-1 text-dark">Recebendo Mesa ${mesaNumero}</h5>
+                    <div class="fs-2 fw-900 mb-3" style="color: var(--primary);">R$ ${total.toFixed(2)}</div>
+                    
+                    <select id="pgto-mesa-${mesaNumero}" class="form-select form-select-lg mb-3 fw-bold text-center rounded-pill bg-light border-0 shadow-sm" onchange="mudarFormaPgto(${mesaNumero})">
+                        <option value="DINHEIRO">💵 Dinheiro</option>
+                        <option value="CARTAO">💳 Cartão</option>
+                        <option value="PIX">📱 PIX (Gerar QR Code)</option>
+                    </select>
+                    
+                    <div id="area-pix-${mesaNumero}" style="display:none;" class="mb-3">
+                        <button id="btn-gerar-pix-${mesaNumero}" onclick="gerarPixOperador(${mesaNumero})" class="btn btn-dark w-100 fw-bold mb-2 rounded-pill py-2">
+                            <i class="fas fa-qrcode me-2"></i> GERAR PIX
+                        </button>
+                        <div id="qr-container-${mesaNumero}"></div>
+                    </div>
+
+                    <button id="btn-confirmar-${mesaNumero}" onclick="receberMesa(${mesaNumero})" class="btn w-100 fw-bold rounded-pill text-white mb-3 py-3" style="background: var(--primary); font-size: 1.1rem; box-shadow: 0 10px 20px rgba(255,107,0,0.3);">
+                        <i class="fas fa-check-circle me-2"></i> CONFIRMAR
+                    </button>
+                    <button onclick="cancelarAtendimento()" class="btn btn-link text-muted w-100 text-decoration-none fw-bold small">Cancelar e Voltar</button>
+                </div>
+            `;
+        }
+
+        function mudarFormaPgto(mesaNumero) {
+            const pgto = document.getElementById(`pgto-mesa-${mesaNumero}`).value;
+            const areaPix = document.getElementById(`area-pix-${mesaNumero}`);
+            areaPix.style.display = (pgto === 'PIX') ? 'block' : 'none';
+        }
+
+        function cancelarAtendimento() {
+            mesaEmAtendimento = null; 
+            verificarMesasAguardando();
+        }
+
+        function gerarPixOperador(mesaNumero) {
+            const btn = document.getElementById(`btn-gerar-pix-${mesaNumero}`);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+            btn.disabled = true;
+
+            fetch(`/api/gerar_pix_operador/${mesaNumero}/`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso') {
+                    btn.style.display = 'none';
+                    document.getElementById(`qr-container-${mesaNumero}`).innerHTML = `
+                        <div class="bg-white p-3 rounded-4 border border-2 text-center" style="border-color: var(--primary) !important;">
+                            <img src="data:image/png;base64,${data.qr_base64}" class="img-fluid rounded shadow-sm mb-2" style="max-width: 180px;">
+                            <p class="small fw-bold m-0" style="color: var(--primary); animation: pulse 1.5s infinite;">Mostre para o cliente...</p>
+                        </div>
+                    `;
+                } else {
+                    alert("Erro ao gerar PIX: " + data.msg);
+                    btn.innerHTML = '<i class="fas fa-qrcode me-2"></i> GERAR PIX';
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                alert('Erro de comunicação.');
+                btn.disabled = false;
+            });
+        }
+
+        function receberMesa(mesaNumero) {
+            const formaPgto = document.getElementById(`pgto-mesa-${mesaNumero}`).value;
+            const btn = document.getElementById(`btn-confirmar-${mesaNumero}`);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+            btn.disabled = true;
+
+            fetch(`/api/receber_mesa/${mesaNumero}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                body: JSON.stringify({ forma_pagamento: formaPgto })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso') {
+                    mesaEmAtendimento = null; 
+                    verificarMesasAguardando(); 
+                } else {
+                    alert("Erro: " + data.msg);
+                    btn.innerHTML = '<i class="fas fa-check-circle me-2"></i> CONFIRMAR';
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // ==========================================
+        // 🔔 ALARME SONORO DO CAIXA
+        // ==========================================
+        const somCampainha = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+        let totalAlertasAnterior = 0;
+        let radarSonoro = null;
+
+        function ativarSomCaixa() {
+            const btn = document.getElementById('btnAtivarSom');
+            
+            somCampainha.volume = 0.1;
+            somCampainha.play().then(() => {
+                somCampainha.pause();
+                somCampainha.currentTime = 0;
+                somCampainha.volume = 1.0; 
+            }).catch(e => console.log("Aguardando interação do usuário."));
+
+            btn.classList.add('active');
+            btn.innerHTML = '<div class="spinner-grow spinner-grow-sm me-2 text-primary" role="status"></div> <span>Radar Ativo</span>';
+            
+            if(!radarSonoro) {
+                verificarNovosPedidos(); 
+                radarSonoro = setInterval(verificarNovosPedidos, 10000);
+            }
+        }
+
+        function verificarNovosPedidos() {
+            fetch('/api/verificar_alertas/')
+            .then(res => res.json())
+            .then(data => {
+                const totalAtual = data.total_alertas;
+                if (totalAlertasAnterior > 0 && totalAtual > totalAlertasAnterior) {
+                    somCampainha.play().catch(e => console.log("Som bloqueado."));
+                }
+                if (totalAtual > 0) {
+                    totalAlertasAnterior = totalAtual;
+                } else {
+                    totalAlertasAnterior = 0;
+                }
+            })
+            .catch(err => console.log("Procurando alertas..."));
+        }
+    </script>
+</body>
+</html>

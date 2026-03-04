@@ -1,0 +1,46 @@
+<form method="post" action="{% url 'editar_produto' produto.id %}" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;">Nome do Produto</label>
+    {{ form.nome }}
+    
+    <div class="row">
+        <div class="col-6">
+            <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;">Preço (R$)</label>
+            {{ form.preco }}
+        </div>
+        <div class="col-6">
+            <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;">Categoria</label>
+            {{ form.categoria }}
+        </div>
+    </div>
+    
+    <label class="d-block fw-bold text-muted small text-uppercase mb-1 mt-2" style="letter-spacing: 1px;"><i class="fas fa-pizza-slice text-warning me-1"></i> Sabores Disponíveis</label>
+    {{ form.sabores }}
+    <small class="text-muted d-block mb-3" style="font-size: 0.75rem; margin-top: -10px;">Separe por vírgulas. Deixe em branco se não for pizza/salgado misto.</small>
+
+    <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;"><i class="fas fa-plus-circle text-success me-1"></i> Adicionais Permitidos (Bordas, Extras)</label>
+    {{ form.adicionais_disponiveis }}
+    <small class="text-muted d-block mb-3" style="font-size: 0.75rem;">Segure CTRL (ou CMD) para selecionar vários.</small>
+    
+    <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;">Descrição (Aparece no App)</label>
+    {{ form.descricao }}
+    
+    <label class="d-block fw-bold text-muted small text-uppercase mb-1" style="letter-spacing: 1px;">Atualizar Foto (Opcional)</label>
+    {{ form.imagem }}
+    
+    <div class="d-flex align-items-center gap-3 mt-3 mb-4 p-3 rounded-4" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+        <label class="switch m-0" title="Ativar/Pausar Venda">
+            {{ form.ativo }}
+            <span class="slider"></span>
+        </label>
+        <div>
+            <h6 class="m-0 fw-bold text-dark" style="font-size: 0.95rem;">Disponível para Venda</h6>
+            <small class="text-muted" style="font-size: 0.8rem;">Define se o cliente pode ver e comprar</small>
+        </div>
+    </div>
+    
+    <button type="submit" class="w-100 py-3 fw-bold text-white border-0" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 14px; font-size: 1.1rem; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(255,107,0,0.3); transition: 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+        SALVAR ALTERAÇÕES <i class="fas fa-check-circle ms-2"></i>
+    </button>
+</form>

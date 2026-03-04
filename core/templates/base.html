@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Salgadinho Lanches | App</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* AQUI VAI TODO AQUELE CSS DO APPLE STYLE QUE FIZEMOS */
+        :root { --primary: #FF2B4D; --dark: #0F172A; --gray: #94A3B8; --bg: #F8FAFC; --glass: rgba(15, 23, 42, 0.9); --radius: 24px; }
+        body { font-family: 'Outfit', sans-serif; background-color: var(--bg); color: var(--dark); padding-bottom: 140px; -webkit-font-smoothing: antialiased; }
+        
+        /* ... (Mantenha o resto do CSS aqui para não repetir código) ... */
+        
+        /* Adicione estas classes utilitárias para garantir que os partials funcionem */
+        .app-header { padding: 20px 24px 10px; background: var(--bg); }
+        .nav-cats { position: sticky; top: 0; z-index: 90; background: rgba(248, 250, 252, 0.95); backdrop-filter: blur(10px); padding: 10px 24px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .glass-cart { position: fixed; bottom: 30px; left: 24px; right: 24px; z-index: 1000; transform: translateY(200%); transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); cursor: pointer; }
+        .glass-cart.visible { transform: translateY(0); }
+        .cart-content { background: var(--glass); backdrop-filter: blur(12px); color: white; padding: 18px 25px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3); }
+    </style>
+</head>
+<body>
+
+    {% include 'partials/header.html' %}
+
+    {% block content %}
+    {% endblock %}
+
+    {% include 'partials/footer.html' %}
+    {% include 'partials/modals.html' %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

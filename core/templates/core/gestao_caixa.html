@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Caixa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; }
+        .card-resumo { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .val-total { font-size: 2.5rem; font-weight: 800; color: #0f172a; line-height: 1; margin: 10px 0; }
+        .val-sub { font-size: 1.2rem; font-weight: 700; color: #64748b; }
+        
+        .table-mov tr td { vertical-align: middle; padding: 12px 15px; }
+        .text-entrada { color: #16a34a; font-weight: bold; }
+        .text-saida { color: #dc2626; font-weight: bold; }
+    </style>
+</head>
+<body class="p-4">
+
+<div class="container" style="max-width: 1000px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-0"><i class="fas fa-cash-register text-primary me-2"></i> Caixa Operacional</h3>
+            <a href="/dashboard/" class="text-decoration-none text-muted small"><i class="fas fa-arrow-left"></i> Voltar ao Dashboard</a>
+        </div>
+        
+        {% if caixa %}
+            <div class="badge bg-success p-2 px-3 fs-6 rounded-pill">
+                <i class="fas fa-lock-open me-1"></i> Caixa Aberto (#{{ caixa.id }})
+            </div>
+        {% else %}
+            <div class="badge bg-danger p-2 px-3 fs-6 rounded-pill">
+                <i class="fas fa-lock me-1"></i> Caixa Fechado
+            </div>
+        {% endif %}
+    </div>
+
+    {% if not caixa %}
+    <div class="card-resumo text-center py-5">
+        <i class="fas fa-wallet fa-4x text-muted mb-3"></i>
+        <h4 class="fw-bold">Nenhum caixa aberto no momento</h4>
+        <p class="text-muted mb-4">Abra o caixa informando o troco inicial para começar a vender.</p>
+        
+        <form method="POST" class="mx-auto" style="max-width: 300px;">
+            {% csrf_token %}
+            <input type="hidden" name="acao" value="abrir">
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-light border-end-0 fw-bold">R$</span>
+                <input type="number" step="0.01" name="saldo_inicial" class="form-control form-control-lg border-start-0" placeholder="Troco Inicial (Ex: 50.00)" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill">ABRIR CAIXA</button>
+        </form>
+    </div>
+    
+    {% else %}
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card-resumo" style="background: #0f172a; color: white;">
+                <div class="text-uppercase small fw-bold text-white-50">Total em Caixa (Gaveta + Digital)</div>
+                <div class="val-total text-white">R$ {{ resumo.TOTAL|floatformat:2 }}</div>
+                
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top border-secondary">
+                    <div>
+                        <div class="small text-white-50">Dinheiro</div>
+                        <div class="fw-bold">R$ {{ resumo.DINHEIRO|floatformat:2 }}</div>
+                    </div>
+                    <div>
+                        <div class="small text-white-50">PIX</div>
+                        <div class="fw-bold">R$ {{ resumo.PIX|floatformat:2 }}</div>
+                    </div>
+                    <div>
+                        <div class="small text-white-50">Cartão</div>
+                        <div class="fw-bold">R$ {{ resumo.CARTAO|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card-resumo h-100 d-flex flex-column justify-content-center">
+                <h6 class="fw-bold text-muted mb-3 text-uppercase">Ações do Caixa</h6>
+                <div class="d-flex gap-3">
+                    <button class="btn btn-outline-dark fw-bold flex-fill py-3 rounded-4" data-bs-toggle="modal" data-bs-target="#modalMovimentar">
+                        <i class="fas fa-exchange-alt fs-4 d-block mb-2"></i>
+                        Sangria / Suprimento
+                    </button>
+                    
+                    <form method="POST" class="flex-fill" onsubmit="return confirm('Tem certeza que deseja fechar o caixa e encerrar o dia?');">
+                        {% csrf_token %}
+                        <input type="hidden" name="acao" value="fechar">
+                        <button type="submit" class="btn btn-danger w-100 h-100 fw-bold rounded-4 py-3">
+                            <i class="fas fa-cash-register fs-4 d-block mb-2"></i>
+                            FECHAR CAIXA
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-resumo p-0 overflow-hidden">
+        <div class="p-4 border-bottom bg-light">
+            <h5 class="fw-bold m-0">Histórico de Movimentações</h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-mov m-0">
+                <thead class="text-muted small">
+                    <tr>
+                        <th>Hora</th>
+                        <th>Descrição</th>
+                        <th>Pagamento</th>
+                        <th class="text-end">Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in movimentacoes %}
+                    <tr>
+                        <td class="text-muted small">{{ m.data|date:"H:i" }}</td>
+                        <td class="fw-bold">{{ m.descricao }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ m.forma_pagamento }}</span></td>
+                        <td class="text-end {% if m.tipo == 'ENTRADA' %}text-entrada{% else %}text-saida{% endif %}">
+                            {% if m.tipo == 'ENTRADA' %}+{% else %}-{% endif %} R$ {{ m.valor|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="text-center py-4 text-muted">Nenhuma movimentação ainda.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<div class="modal fade" id="modalMovimentar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold">Movimentar Dinheiro</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="movimentar">
+                <div class="modal-body">
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="tipo" id="tipoSaida" value="SAIDA" checked>
+                            <label class="btn btn-outline-danger w-100 fw-bold" for="tipoSaida"><i class="fas fa-arrow-down"></i> Sangria (Retirar)</label>
+                        </div>
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="tipo" id="tipoEntrada" value="ENTRADA">
+                            <label class="btn btn-outline-success w-100 fw-bold" for="tipoEntrada"><i class="fas fa-arrow-up"></i> Suprimento (Por)</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">VALOR</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light fw-bold">R$</span>
+                            <input type="number" step="0.01" name="valor" class="form-control form-control-lg" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">FORMA</label>
+                        <select name="forma_pagamento" class="form-select bg-light">
+                            <option value="DINHEIRO">Dinheiro da Gaveta</option>
+                            <option value="PIX">Transferência PIX</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">MOTIVO / DESCRIÇÃO</label>
+                        <input type="text" name="descricao" class="form-control bg-light" placeholder="Ex: Pagamento do entregador de água..." required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn btn-dark w-100 py-3 rounded-pill fw-bold shadow-sm">CONFIRMAR MOVIMENTAÇÃO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

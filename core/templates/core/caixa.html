@@ -1,0 +1,559 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frente de Caixa | AlianceFood</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: PDV ALIANCEFOOD
+           ========================================== */
+        :root { 
+            --primary: #FF6B00; 
+            --primary-light: #FF9B4D;
+            --text-dark: #0F172A; 
+            --text-muted: #64748B;
+            --bg-app: #F4F7FE; 
+            --card-bg: #FFFFFF;
+            --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.03);
+            --radius-md: 16px;
+        }
+
+        body { 
+            background-color: var(--bg-app); 
+            font-family: 'Inter', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            margin: 0;
+        }
+
+        /* LAYOUT DIVIDIDO */
+        .pdv-container { display: grid; grid-template-columns: 1fr 420px; height: 100vh; }
+        
+        /* ==========================================
+           LADO ESQUERDO: PRODUTOS
+           ========================================== */
+        .left-panel { padding: 25px; overflow-y: auto; display: flex; flex-direction: column; background: var(--bg-app); }
+        
+        /* Cabeçalho do PDV */
+        .pdv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .brand-pdv { font-weight: 900; font-size: 1.5rem; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .brand-pdv i { color: var(--primary); font-size: 1.8rem; }
+        
+        .btn-voltar {
+            background: white; border: 1px solid rgba(0,0,0,0.05); color: var(--text-muted);
+            font-weight: 800; border-radius: 50px; padding: 8px 20px; transition: 0.3s;
+            text-decoration: none; box-shadow: var(--shadow-soft);
+        }
+        .btn-voltar:hover { background: var(--text-dark); color: white; border-color: var(--text-dark); }
+
+        /* Barra de Busca */
+        .search-bar { 
+            background: white; padding: 18px 25px; border-radius: 50px; 
+            box-shadow: var(--shadow-soft); margin-bottom: 30px; 
+            display: flex; gap: 15px; align-items: center; border: 1px solid rgba(0,0,0,0.03);
+            transition: 0.3s;
+        }
+        .search-bar:focus-within { border-color: var(--primary-light); box-shadow: 0 10px 25px rgba(255,107,0,0.1); }
+        .search-input { border: none; font-size: 1.1rem; width: 100%; outline: none; font-weight: 600; color: var(--text-dark); }
+        .search-input::placeholder { color: #CBD5E1; font-weight: 400; }
+        .key-badge { background: var(--text-dark); color: white; padding: 4px 8px; border-radius: 8px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; font-weight: 700;}
+
+        /* Lista de Produtos */
+        .cat-title { font-weight: 900; color: var(--text-dark); margin: 20px 0 15px; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .cat-title::before { content: ''; width: 8px; height: 24px; background: var(--primary); border-radius: 4px; }
+
+        .prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 18px; }
+        
+        .prod-card {
+            background: white; border-radius: var(--radius-md); padding: 15px; cursor: pointer;
+            transition: 0.3s; border: 1px solid rgba(0,0,0,0.03); user-select: none;
+            position: relative; overflow: hidden; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between;
+            box-shadow: var(--shadow-soft);
+        }
+        .prod-card:hover { transform: translateY(-5px); border-color: rgba(255,107,0,0.2); box-shadow: 0 10px 25px rgba(255,107,0,0.1); }
+        .prod-card:active { transform: scale(0.95); }
+        
+        .prod-img { height: 110px; width: 100%; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: #f1f5f9; }
+        .prod-name { font-weight: 800; color: var(--text-dark); line-height: 1.2; margin-bottom: 5px; font-size: 0.95rem; }
+        .prod-price { font-weight: 900; color: var(--primary); font-size: 1.2rem; }
+
+        /* ==========================================
+           LADO DIREITO: CUPOM E PAGAMENTO
+           ========================================== */
+        .right-panel { 
+            background: white; border-left: 1px solid rgba(0,0,0,0.05); 
+            display: flex; flex-direction: column; height: 100vh; 
+            box-shadow: -10px 0 30px rgba(0,0,0,0.03); z-index: 10;
+        }
+
+        .cart-header { 
+            background: linear-gradient(135deg, var(--text-dark), #020617); 
+            color: white; padding: 25px 25px 20px; 
+        }
+        .cart-title { font-weight: 900; font-size: 1.2rem; margin: 0; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px;}
+        .btn-clear { background: rgba(255,255,255,0.1); border: none; color: #F87171; width: 35px; height: 35px; border-radius: 8px; transition: 0.2s; }
+        .btn-clear:hover { background: #EF4444; color: white; }
+        
+        /* Itens do Cupom */
+        .cart-body { flex: 1; overflow-y: auto; padding: 0; background: #FAFAFA; }
+        .cart-item { 
+            padding: 15px 25px; border-bottom: 1px dashed rgba(0,0,0,0.05); 
+            display: flex; justify-content: space-between; align-items: center; 
+            animation: slideIn 0.2s ease-out; background: white;
+        }
+        .cart-item:hover { background: #F8FAFC; }
+        .item-qty { background: var(--primary); color: white; padding: 4px 10px; border-radius: 8px; font-weight: 900; font-size: 0.9rem; margin-right: 12px; }
+        .btn-trash { color: #EF4444; cursor: pointer; padding: 8px; opacity: 0.5; transition: 0.2s; border-radius: 8px; }
+        .btn-trash:hover { opacity: 1; background: #FEE2E2; }
+
+        /* Rodapé do Cupom */
+        .cart-footer { background: white; padding: 25px; border-top: 1px solid rgba(0,0,0,0.05); box-shadow: 0 -10px 20px rgba(0,0,0,0.02); }
+        
+        .config-row { display: flex; gap: 12px; margin-bottom: 15px; }
+        .input-pdv { 
+            border-radius: 12px; border: 2px solid #E2E8F0; padding: 12px 15px; 
+            font-weight: 600; color: var(--text-dark); outline: none; transition: 0.3s;
+        }
+        .input-pdv:focus { border-color: var(--primary-light); }
+
+        .total-display { 
+            background: #F8FAFC; border-radius: 16px; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; border: 1px solid rgba(0,0,0,0.03);
+        }
+        .total-label { font-weight: 800; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;}
+        .total-val { font-size: 2.2rem; font-weight: 900; color: var(--primary); letter-spacing: -1px; }
+        
+        .btn-checkout { 
+            width: 100%; background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; 
+            padding: 18px; border-radius: 16px; font-weight: 900; font-size: 1.2rem; 
+            text-transform: uppercase; cursor: pointer; transition: 0.3s;
+            display: flex; justify-content: center; align-items: center; gap: 15px;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3); letter-spacing: 1px;
+        }
+        .btn-checkout:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4); }
+        .btn-checkout:active { transform: scale(0.98); }
+
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Painel de Mesas Flutuante */
+        #painel-mesas-pagamento { position: fixed; top: 110px; right: 440px; width: 340px; z-index: 1050; }
+    </style>
+</head>
+<body>
+
+<div class="pdv-container">
+    
+    <div class="left-panel">
+        
+        <div class="pdv-header">
+            <div class="brand-pdv">
+                <i class="fas fa-desktop"></i>
+                <div>
+                    <div style="line-height: 1;">PDV Rápido</div>
+                    <div style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">{{ restaurante.nome|default:"Torre de Controle" }}</div>
+                </div>
+            </div>
+            <a href="{% url 'dashboard' %}" class="btn-voltar"><i class="fas fa-arrow-left me-2"></i> Voltar <span class="key-badge ms-2">ESC</span></a>
+        </div>
+
+        <div class="search-bar">
+            <i class="fas fa-search" style="color: var(--primary); font-size: 1.2rem;"></i>
+            <input type="text" id="searchPDV" class="search-input" placeholder="Buscar produto..." onkeyup="filtrarProdutos()">
+            <span class="key-badge">F2</span>
+        </div>
+
+        <div id="lista-produtos">
+            {% for cat in categorias %}
+            {% if cat.produto_set.exists %}
+            <div class="cat-group" data-cat="{{ cat.nome|lower }}">
+                <div class="cat-title">{{ cat.nome }}</div>
+                <div class="prod-grid">
+                    {% for prod in cat.produto_set.all %}
+                    <div class="prod-card" 
+                         onclick="addToCart({{ prod.id }}, '{{ prod.nome|escapejs }}', {{ prod.preco|stringformat:'.2f' }})"
+                         data-name="{{ prod.nome|lower }}">
+                        
+                        {% if prod.imagem %}
+                        <img src="{{ prod.imagem.url }}" class="prod-img">
+                        {% else %}
+                        <div class="prod-img d-flex align-items-center justify-content-center" style="background: #FFF5F0; color: #FF9B4D; font-size: 2rem;"><i class="fas fa-hamburger"></i></div>
+                        {% endif %}
+                        
+                        <div>
+                            <div class="prod-name">{{ prod.nome|truncatechars:35 }}</div>
+                            <div class="prod-price">R$ {{ prod.preco }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="cart-header">
+            <div class="cart-title">
+                <span><i class="fas fa-receipt me-2" style="color: var(--primary);"></i> Cupom Fiscal</span>
+                <button class="btn-clear" onclick="clearCart()" title="Limpar Cupom"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+
+        <div class="cart-body" id="cartItems">
+            <div class="text-center text-muted mt-5 p-4" style="opacity: 0.6;">
+                <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                    <i class="fas fa-barcode fa-2x"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Caixa Livre</h5>
+                <small>Bipe ou selecione produtos</small>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="config-row">
+                <select class="input-pdv w-50" id="mesaSelect">
+                    <option value="">🛒 Balcão / Viagem</option>
+                    {% for mesa in mesas %}
+                    <option value="{{ mesa.numero }}">🪑 Mesa {{ mesa.numero }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" class="input-pdv w-50" id="clienteNome" placeholder="Nome do Cliente (Opcional)">
+            </div>
+            
+            <div class="config-row">
+                 <select class="input-pdv w-100 fw-bold" id="pgtoSelect" style="font-size: 1.1rem; background: #F8FAFC;">
+                    <option value="DINHEIRO">💵 Pagamento em Dinheiro</option>
+                    <option value="PIX">📱 Pagamento via PIX</option>
+                    <option value="CARTAO">💳 Pagamento no Cartão</option>
+                </select>
+            </div>
+
+            <div class="total-display">
+                <div class="total-label">Total a Pagar</div>
+                <div class="total-val" id="cartTotal">R$ 0,00</div>
+            </div>
+
+            <button class="btn-checkout" onclick="finalizarVenda()">
+                <span>FINALIZAR VENDA</span>
+                <span class="badge bg-white text-success rounded-pill" style="font-family: 'JetBrains Mono'; font-size: 0.9rem;">F9</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<audio id="beep" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
+<div id="painel-mesas-pagamento"></div>
+
+<script>
+    let cart = [];
+    const beep = document.getElementById('beep');
+
+    // 1. ADICIONAR AO CARRINHO
+    function addToCart(id, name, price) {
+        beep.volume = 0.2;
+        beep.currentTime = 0;
+        beep.play().catch(e=>{});
+
+        const existing = cart.find(item => item.id === id);
+        if (existing) { existing.qty++; } 
+        else { cart.push({ id: id, name: name, price: parseFloat(price), qty: 1 }); }
+        renderCart();
+    }
+
+    // 2. RENDERIZAR CARRINHO
+    function renderCart() {
+        const container = document.getElementById('cartItems');
+        const totalEl = document.getElementById('cartTotal');
+
+        if (cart.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted mt-5 p-4" style="opacity: 0.6;">
+                    <div style="width: 80px; height: 80px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                        <i class="fas fa-barcode fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Caixa Livre</h5>
+                    <small>Bipe ou selecione produtos</small>
+                </div>`;
+            totalEl.innerText = "R$ 0,00";
+            return;
+        }
+
+        let html = '';
+        let total = 0;
+
+        cart.forEach((item, index) => {
+            let subtotal = item.price * item.qty;
+            total += subtotal;
+            html += `
+                <div class="cart-item">
+                    <div class="d-flex align-items-center">
+                        <span class="item-qty">${item.qty}</span>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size: 0.95rem;">${item.name}</div>
+                            <small class="text-muted fw-bold">R$ ${item.price.toFixed(2).replace('.', ',')} un.</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-900" style="color: var(--text-dark); font-size: 1.1rem;">R$ ${subtotal.toFixed(2).replace('.', ',')}</span>
+                        <i class="fas fa-times btn-trash" onclick="removeItem(${index})"></i>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        totalEl.innerText = "R$ " + total.toFixed(2).replace('.', ',');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // 3. REMOVER ITEM
+    function removeItem(index) {
+        cart.splice(index, 1);
+        renderCart();
+    }
+
+    function clearCart() {
+        if(confirm('Limpar cupom inteiro?')) {
+            cart = []; renderCart();
+        }
+    }
+
+    // 4. FILTRO DE BUSCA
+    function filtrarProdutos() {
+        const termo = document.getElementById('searchPDV').value.toLowerCase();
+        
+        document.querySelectorAll('.prod-card').forEach(card => {
+            const nome = card.getAttribute('data-name');
+            card.style.display = nome.includes(termo) ? 'flex' : 'none';
+        });
+
+        document.querySelectorAll('.cat-group').forEach(group => {
+            const visiveis = group.querySelectorAll('.prod-card[style="display: flex;"]').length;
+            group.style.display = visiveis > 0 ? 'block' : 'none';
+        });
+    }
+
+    // 5. FINALIZAR VENDA (API COM RESTAURANTE ID INJETADO)
+    function finalizarVenda() {
+        if (cart.length === 0) return alert('Cupom vazio!');
+
+        const btn = document.querySelector('.btn-checkout');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin fa-lg"></i>';
+
+        const mesa = document.getElementById('mesaSelect').value;
+        const nome = document.getElementById('clienteNome').value || 'Cliente Balcão';
+        const pgto = document.getElementById('pgtoSelect').value;
+
+        const payload = {
+            restaurante_id: '{{ restaurante.id }}', // 🚀 SaaS Requirement
+            nome: nome,
+            origem: mesa ? 'MESA' : 'BALCAO',
+            mesa_id: mesa,
+            itens: cart, 
+            forma_pagamento: pgto,
+            whatsapp: '' 
+        };
+
+        fetch('/api/finalizar/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'sucesso') {
+                cart = [];
+                renderCart();
+                document.getElementById('clienteNome').value = '';
+                document.getElementById('searchPDV').value = '';
+                document.getElementById('mesaSelect').value = '';
+                filtrarProdutos();
+
+                // Impressão Automática (Popup Invisível)
+                if(confirm(`✅ Venda Realizada com Sucesso!\nDeseja imprimir o cupom?`)) {
+                    window.open(`/imprimir/${data.pedido_id}/`, 'Imprimir', 'width=350,height=600');
+                }
+            } else {
+                alert('Erro: ' + data.msg);
+            }
+        })
+        .catch(err => alert('Erro de conexão com o servidor.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    }
+
+    // 6. ATALHOS DE TECLADO RÁPIDOS
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F2') { e.preventDefault(); document.getElementById('searchPDV').focus(); }
+        if (e.key === 'F9') { e.preventDefault(); finalizarVenda(); }
+        if (e.key === 'Escape') {
+            const search = document.getElementById('searchPDV');
+            if (document.activeElement === search) { search.value = ''; search.blur(); filtrarProdutos(); } 
+            else { window.location.href = '/dashboard/'; }
+        }
+    });
+
+    // ==========================================
+    // 🔔 RADAR DE MESAS AGUARDANDO PAGAMENTO (SaaS)
+    // ==========================================
+    let mesaEmAtendimento = null; 
+
+    function verificarMesasAguardando() {
+        if(mesaEmAtendimento) return; 
+
+        fetch('/api/mesas_aguardando/')
+        .then(res => res.json())
+        .then(data => {
+            const painel = document.getElementById('painel-mesas-pagamento');
+            if(data.mesas.length > 0) {
+                let html = `
+                    <div class="card border-0 shadow-lg" style="border-top: 5px solid var(--primary) !important; animation: pulse 2s infinite;">
+                        <div class="card-header bg-white text-dark fw-bold d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-bell text-warning me-2"></i> Caixa Automático</span>
+                            <span class="badge" style="background: var(--primary);">${data.mesas.length} Fila</span>
+                        </div>
+                        <div class="card-body p-3" style="max-height: 60vh; overflow-y: auto;">
+                `;
+                
+                data.mesas.forEach(m => {
+                    html += `
+                        <div id="card-mesa-${m.mesa}" class="border rounded-4 p-3 mb-3 bg-light position-relative overflow-hidden">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="fw-bold m-0 text-dark"><i class="fas fa-chair text-muted me-2"></i> Mesa ${m.mesa}</h5>
+                                <span class="badge bg-secondary">${m.qtd} itens</span>
+                            </div>
+                            <div class="text-success fs-3 fw-900 mb-3" style="letter-spacing: -1px;">R$ ${m.total.toFixed(2)}</div>
+                            <button onclick="abrirPagamentoMesa(${m.mesa}, ${m.total})" class="btn btn-dark w-100 fw-bold rounded-pill">
+                                COBRAR AGORA
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                html += '</div></div>';
+                painel.innerHTML = html;
+            } else {
+                painel.innerHTML = ''; 
+            }
+        });
+    }
+
+    setInterval(verificarMesasAguardando, 5000);
+    verificarMesasAguardando(); 
+
+    function abrirPagamentoMesa(mesaNumero, total) {
+        mesaEmAtendimento = mesaNumero; 
+        const card = document.getElementById(`card-mesa-${mesaNumero}`);
+        card.style.background = 'white';
+        card.style.border = '2px solid var(--primary)';
+        card.style.transform = 'scale(1.03)';
+        card.style.boxShadow = '0 15px 30px rgba(255,107,0,0.2)';
+        
+        card.innerHTML = `
+            <div class="text-center">
+                <h5 class="fw-bold mb-1 text-dark">Recebendo Mesa ${mesaNumero}</h5>
+                <div class="fs-2 fw-900 mb-3" style="color: var(--primary);">R$ ${total.toFixed(2)}</div>
+                
+                <select id="pgto-mesa-${mesaNumero}" class="form-select form-select-lg mb-3 fw-bold text-center border-0 bg-light rounded-pill" onchange="mudarFormaPgto(${mesaNumero})">
+                    <option value="DINHEIRO">💵 Dinheiro</option>
+                    <option value="CARTAO">💳 Cartão</option>
+                    <option value="PIX">📱 PIX (Gerar QR Code)</option>
+                </select>
+                
+                <div id="area-pix-${mesaNumero}" style="display:none;" class="mb-3">
+                    <button id="btn-gerar-pix-${mesaNumero}" onclick="gerarPixOperador(${mesaNumero})" class="btn btn-dark btn-sm w-100 fw-bold mb-2 rounded-pill py-2">
+                        <i class="fas fa-qrcode me-2"></i> GERAR PIX
+                    </button>
+                    <div id="qr-container-${mesaNumero}"></div>
+                </div>
+
+                <button id="btn-confirmar-${mesaNumero}" onclick="receberMesa(${mesaNumero})" class="btn w-100 fw-bold rounded-pill text-white mb-2 py-3" style="background: var(--primary);">
+                    <i class="fas fa-check-circle me-1"></i> CONFIRMAR PAGAMENTO
+                </button>
+                <button onclick="cancelarAtendimento()" class="btn btn-sm btn-link text-muted w-100 text-decoration-none fw-bold">Voltar</button>
+            </div>
+        `;
+    }
+
+    function mudarFormaPgto(mesaNumero) {
+        const pgto = document.getElementById(`pgto-mesa-${mesaNumero}`).value;
+        const areaPix = document.getElementById(`area-pix-${mesaNumero}`);
+        areaPix.style.display = (pgto === 'PIX') ? 'block' : 'none';
+    }
+
+    function cancelarAtendimento() {
+        mesaEmAtendimento = null; 
+        verificarMesasAguardando();
+    }
+
+    function gerarPixOperador(mesaNumero) {
+        const btn = document.getElementById(`btn-gerar-pix-${mesaNumero}`);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+        btn.disabled = true;
+
+        fetch(`/api/gerar_pix_operador/${mesaNumero}/`)
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'sucesso') {
+                btn.style.display = 'none';
+                document.getElementById(`qr-container-${mesaNumero}`).innerHTML = `
+                    <div class="bg-white p-2 rounded-4 border border-2 text-center" style="border-color: var(--primary) !important;">
+                        <img src="data:image/png;base64,${data.qr_base64}" class="img-fluid rounded shadow-sm mb-1" style="max-width: 150px;">
+                        <p class="small fw-bold m-0" style="color: var(--primary); animation: pulse 1.5s infinite;">Aguardando Pagamento...</p>
+                    </div>
+                `;
+            } else {
+                alert("Erro ao gerar PIX: " + data.msg);
+                btn.innerHTML = '<i class="fas fa-qrcode"></i> GERAR PIX';
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            alert('Erro de comunicação.');
+            btn.disabled = false;
+        });
+    }
+
+    function receberMesa(mesaNumero) {
+        const formaPgto = document.getElementById(`pgto-mesa-${mesaNumero}`).value;
+        const btn = document.getElementById(`btn-confirmar-${mesaNumero}`);
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSANDO...';
+        btn.disabled = true;
+
+        fetch(`/api/receber_mesa/${mesaNumero}/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ 
+                forma_pagamento: formaPgto,
+                restaurante_id: '{{ restaurante.id }}' // 🚀 SaaS Requirement
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'sucesso') {
+                mesaEmAtendimento = null; 
+                verificarMesasAguardando(); 
+            } else {
+                alert("Erro: " + data.msg);
+                btn.innerHTML = '<i class="fas fa-check-circle me-1"></i> CONFIRMAR PAGAMENTO';
+                btn.disabled = false;
+            }
+        });
+    }
+</script>
+</body>
+</html>

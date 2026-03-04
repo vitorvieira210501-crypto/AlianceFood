@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações da Loja | AlianceFood SaaS</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root { 
+            --primary: #FF6B00; 
+            --bg-app: #F4F7FE; 
+            --text-dark: #0F172A; 
+            --text-muted: #64748B;
+        }
+        body { background-color: var(--bg-app); font-family: 'Inter', sans-serif; color: var(--text-dark); padding-bottom: 50px;}
+        
+        .top-nav { background: white; padding: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 40px; }
+        .btn-back { background: var(--bg-app); color: var(--text-dark); padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: 0.3s; }
+        .btn-back:hover { background: #E2E8F0; color: var(--text-dark); }
+        
+        .settings-card { background: white; border-radius: 24px; padding: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.05); margin-bottom: 30px;}
+        .card-icon { width: 50px; height: 50px; background: #FFF5F0; color: var(--primary); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 20px;}
+        
+        .form-label { font-weight: 800; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;}
+        .form-control { border-radius: 12px; border: 2px solid #F1F5F9; background: #F8FAFC; padding: 15px 20px; font-weight: 600; color: var(--text-dark); transition: 0.3s;}
+        .form-control:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(255,107,0,0.1); }
+        
+        /* O Switch "Aberto/Fechado" Apple Style */
+        .status-box { background: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s;}
+        .status-box:has(.form-check-input:checked) { border-color: #10B981; background: rgba(16, 185, 129, 0.05); }
+        .form-switch .form-check-input:checked { background-color: #10B981; border-color: #10B981; }
+        
+        .btn-save { background: var(--primary); color: white; font-weight: 900; font-size: 1.1rem; border-radius: 14px; padding: 18px; border: none; box-shadow: 0 10px 20px rgba(255,107,0,0.3); transition: 0.3s;}
+        .btn-save:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255,107,0,0.4); }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="btn-back"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
+                <h4 class="m-0 fw-bold">Configurações da Loja</h4>
+            </div>
+            <div class="fw-bold text-muted"><i class="fas fa-store me-2"></i> {{ restaurante.nome }}</div>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 900px;">
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success fw-bold border-0 shadow-sm rounded-4 py-3 mb-4">
+                    <i class="fas fa-check-circle me-2"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row">
+                <div class="col-lg-5 mb-4">
+                    <div class="settings-card h-100">
+                        <div class="card-icon"><i class="fas fa-power-off"></i></div>
+                        <h4 class="fw-bold mb-4">Status da Loja</h4>
+                        
+                        <div class="status-box mb-4">
+                            <div>
+                                <h6 class="fw-bold m-0 text-dark">Aberto para Pedidos</h6>
+                                <p class="small text-muted m-0 mt-1">Os clientes podem comprar no site.</p>
+                            </div>
+                            <div class="form-check form-switch m-0 fs-3">
+                             {{ form.aberta }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Mensagem de Loja Fechada</label>
+                            {{ form.mensagem_fechado }}
+                            <div class="form-text small mt-2">Exibido aos clientes quando o botão acima estiver desligado.</div>
+                        </div>
+
+                        <div class="mb-0">
+                            <label class="form-label"><i class="fas fa-motorcycle me-1 text-primary"></i> Previsão de Entrega</label>
+                            {{ form.tempo_entrega }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-7 mb-4">
+                    <div class="settings-card h-100">
+                        <div class="card-icon"><i class="fas fa-building"></i></div>
+                        <h4 class="fw-bold mb-4">Informações Públicas</h4>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Nome de Exibição</label>
+                            {{ form.nome }}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">WhatsApp de Suporte (Com DDD)</label>
+                            {{ form.telefone }}
+                            <div class="form-text small mt-2">Para onde vão as dúvidas e envios de comprovativos.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-4">
+                                <label class="form-label">CEP</label>
+                                {{ form.cep }}
+                            </div>
+                            <div class="col-md-8 mb-4">
+                                <label class="form-label">Endereço Físico</label>
+                                {{ form.endereco }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-save w-100 mt-2">
+                SALVAR CONFIGURAÇÕES <i class="fas fa-check ms-2"></i>
+            </button>
+        </form>
+    </div>
+
+</body>
+</html>

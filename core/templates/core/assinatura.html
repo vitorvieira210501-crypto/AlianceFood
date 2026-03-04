@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Assinatura | AlianceFood SaaS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root { --primary: #FF6B00; --bg-app: #F4F7FE; --text-dark: #0F172A; --text-muted: #64748B; --success: #10B981; --danger: #EF4444; }
+        body { background-color: var(--bg-app); font-family: 'Inter', sans-serif; color: var(--text-dark); padding-bottom: 50px;}
+        
+        .top-nav { background: white; padding: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 40px; }
+        .btn-back { background: var(--bg-app); color: var(--text-dark); padding: 10px 20px; border-radius: 50px; text-decoration: none; font-weight: 700; transition: 0.3s; }
+        .btn-back:hover { background: #E2E8F0; color: var(--text-dark); }
+        
+        .billing-card { background: white; border-radius: 24px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.05); position: relative; overflow: hidden;}
+        
+        .status-badge { padding: 8px 16px; border-radius: 50px; font-weight: 800; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.5px;}
+        .status-trial { background: rgba(255, 107, 0, 0.1); color: var(--primary); border: 1px solid rgba(255, 107, 0, 0.2); }
+        .status-ativo { background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-vencido { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); animation: pulseDanger 2s infinite;}
+        
+        @keyframes pulseDanger { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        .price-display { font-size: 3.5rem; font-weight: 900; letter-spacing: -2px; color: var(--text-dark); line-height: 1; margin: 20px 0;}
+        .price-display span { font-size: 1.2rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0;}
+
+        .btn-pay { background: var(--text-dark); color: white; font-weight: 900; font-size: 1.1rem; border-radius: 14px; padding: 20px; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: 0.3s; width: 100%; display: flex; justify-content: space-between; align-items: center; text-align: left;}
+        .btn-pay:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(0,0,0,0.3); background: black; color: white;}
+        .btn-pay i { color: var(--success); font-size: 1.4rem; }
+
+        .feature-list { list-style: none; padding: 0; margin: 30px 0; }
+        .feature-list li { margin-bottom: 12px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 10px; }
+        .feature-list li i { color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <nav class="top-nav">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'dashboard' %}" class="btn-back"><i class="fas fa-arrow-left me-2"></i> Voltar</a>
+                <h4 class="m-0 fw-bold">Gestão de Assinatura</h4>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="billing-card">
+            
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h3 class="fw-bold text-dark m-0">Plano Aliance Pro</h3>
+                
+                {% if restaurante.status_assinatura == 'TRIAL' %}
+                    <div class="status-badge status-trial"><i class="fas fa-gift"></i> EM TESTE</div>
+                {% elif restaurante.status_assinatura == 'ATIVO' %}
+                    <div class="status-badge status-ativo"><i class="fas fa-check-circle"></i> ATIVO</div>
+                {% else %}
+                    <div class="status-badge status-vencido"><i class="fas fa-exclamation-triangle"></i> BLOQUEADO</div>
+                {% endif %}
+            </div>
+
+            <div class="price-display">
+                <small style="font-size: 1.5rem; vertical-align: super;">R$</small>{{ restaurante.valor_mensalidade }}<span>/mês</span>
+            </div>
+
+            <div class="p-3 rounded-4 mb-4" style="background: #F8FAFC; border: 1px dashed #CBD5E1;">
+                {% if dias_restantes > 0 %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 45px; height: 45px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <i class="far fa-calendar-check"></i>
+                        </div>
+                        <div>
+                            <p class="m-0 fw-bold text-dark">Vencimento em {{ dias_restantes }} dias</p>
+                            <p class="m-0 small text-muted">Sua loja está funcionando normalmente.</p>
+                        </div>
+                    </div>
+                {% elif dias_restantes == 0 and restaurante.vencimento_assinatura %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 45px; height: 45px; background: rgba(255, 107, 0, 0.1); color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div>
+                            <p class="m-0 fw-bold text-dark">Sua mensalidade vence HOJE!</p>
+                            <p class="m-0 small text-muted">Efetue o pagamento para evitar o bloqueio.</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width: 45px; height: 45px; background: rgba(239, 68, 68, 0.1); color: var(--danger); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div>
+                            <p class="m-0 fw-bold text-danger">Acesso Bloqueado</p>
+                            <p class="m-0 small text-muted">Regularize para reabrir a sua loja.</p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Cardápio Digital Ilimitado</li>
+                <li><i class="fas fa-check"></i> PDV Caixa e Tela de Cozinha KDS</li>
+                <li><i class="fas fa-check"></i> Gestão de Entregadores em Tempo Real</li>
+                <li><i class="fas fa-check"></i> Pagamentos com PIX e Cartão</li>
+            </ul>
+
+            <div id="area-pagamento-saas">
+                <button class="btn-pay" id="btn-gerar-pagamento-saas" onclick="abrirCheckoutSaaS()">
+                    <span>Pagar Assinatura <br><small style="font-size: 0.75rem; font-weight: 500; opacity: 0.8;">PIX ou Cartão de Crédito</small></span>
+                    <div class="d-flex gap-2">
+                        <i class="fas fa-credit-card text-white"></i>
+                        <i class="fab fa-pix"></i>
+                    </div>
+                </button>
+            </div>
+
+            <p class="text-center mt-3 small text-muted fw-bold"><i class="fas fa-shield-alt me-1"></i> Pagamento Seguro via Mercado Pago</p>
+
+        </div>
+    </div>
+
+    <script>
+        function abrirCheckoutSaaS() {
+            const btn = document.getElementById('btn-gerar-pagamento-saas');
+            const txtOriginal = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Preparando Ambiente Seguro...';
+            btn.disabled = true;
+
+            // Chama a nova API do views.py
+            fetch('/api/gerar_pagamento_saas/') 
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'sucesso') {
+                    // Redireciona o usuário para a tela oficial do Mercado Pago (Checkout Pro)
+                    window.location.href = data.link; 
+                } else {
+                    alert('Erro: ' + data.msg);
+                    btn.innerHTML = txtOriginal;
+                    btn.disabled = false;
+                }
+            }).catch(err => {
+                alert('Erro de conexão. Tente novamente.');
+                btn.innerHTML = txtOriginal;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>

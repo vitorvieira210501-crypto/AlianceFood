@@ -1,0 +1,314 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="30">
+    <title>KDS | Cozinha AlianceFood</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        /* ==========================================
+           🎨 DESIGN SYSTEM: KDS ALIANCEFOOD PRO
+           ========================================== */
+        :root {
+            --bg-dark: #020617; /* Slate 950 - Ultra Dark */
+            --bg-card: #0F172A; /* Slate 900 */
+            --bg-card-hover: #1E293B; /* Slate 800 */
+            --text-main: #F8FAFC; 
+            --text-muted: #94A3B8;
+            --primary: #FF6B00;
+            --primary-light: #FF9B4D;
+            --neon-blue: #3B82F6;
+            --neon-green: #10B981;
+            --neon-red: #EF4444;
+        }
+
+        body {
+            background-color: var(--bg-dark); color: var(--text-main); 
+            font-family: 'Inter', sans-serif; margin: 0; padding: 20px;
+            background-image: radial-gradient(circle at 50% 0%, rgba(255, 107, 0, 0.05), transparent 50%);
+        }
+
+        #audio-alert { display: none; }
+
+        /* --- HEADER KDS --- */
+        .kds-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 10px 20px 25px; margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .brand { font-size: 1.8rem; font-weight: 900; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; }
+        .brand a { text-decoration: none; color: white; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .brand a:hover { color: var(--primary); }
+        .brand-logo { color: var(--primary); text-shadow: 0 0 15px rgba(255,107,0,0.5); font-size: 2rem;}
+        
+        .clock-container { display: flex; align-items: center; gap: 15px; }
+        .clock { font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 800; color: #fff; letter-spacing: -2px; text-shadow: 0 0 20px rgba(255,255,255,0.2);}
+        .live-indicator { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 6px; }
+
+        /* --- GRID DE PEDIDOS --- */
+        .orders-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+
+        /* --- CARDS DE PEDIDO (TICKETS) --- */
+        .ticket {
+            background: var(--bg-card); border-radius: 20px; overflow: hidden;
+            display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s;
+            position: relative;
+        }
+        .ticket:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.1); background: var(--bg-card-hover); }
+        
+        /* Cores de Status (Topo do Card) */
+        .st-NOVO { border-top: 5px solid var(--neon-blue); box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); animation: pulseNovo 2s infinite; }
+        .st-CONFIRMADO { border-top: 5px solid var(--primary); }
+        .st-PRONTO { border-top: 5px solid var(--neon-green); }
+
+        @keyframes pulseNovo { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
+
+        /* Cabeçalho do Ticket */
+        .ticket-header { 
+            padding: 15px 20px; background: rgba(0,0,0,0.3); 
+            display: flex; justify-content: space-between; align-items: center; 
+            font-weight: 800; font-family: 'JetBrains Mono'; font-size: 1.3rem; 
+        }
+        .order-id { color: white; display: flex; align-items: center; gap: 10px; }
+        .btn-print-sm { background: rgba(255,255,255,0.1); border: none; color: white; width: 35px; height: 35px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+        .btn-print-sm:hover { background: var(--primary); transform: scale(1.05); }
+        .timer { background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 8px; transition: color 0.3s; }
+
+        /* Corpo do Ticket */
+        .ticket-body { padding: 20px; flex: 1; }
+        
+        .client-info { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+        .client-name { font-size: 1.05rem; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: 0.5px;}
+        
+        /* Badges de Origem (Mesa, Balcão, Delivery) */
+        .badge-origin { font-weight: 900; padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; }
+        .origin-mesa { background: rgba(255, 107, 0, 0.15); border: 1px solid var(--primary); color: var(--primary); }
+        .origin-balcao { background: rgba(167, 139, 250, 0.15); border: 1px solid #A855F7; color: #D8B4FE; }
+        .origin-delivery { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--neon-blue); color: #93C5FD; }
+
+        /* Itens do Pedido */
+        .item-row { display: flex; gap: 15px; margin-bottom: 15px; font-size: 1.15rem; font-weight: 600; align-items: flex-start; }
+        .qty { 
+            background: var(--primary); color: white; min-width: 36px; height: 36px; 
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 10px; font-weight: 900; font-family: 'JetBrains Mono'; font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(255, 107, 0, 0.3); flex-shrink: 0;
+        }
+        .item-name { color: #E2E8F0; line-height: 1.3; margin-top: 5px; }
+        
+        /* Adicionais e Observações */
+        .mods { margin-top: 6px; font-size: 0.95rem; display: flex; flex-direction: column; gap: 4px;}
+        .mod-add { color: #94A3B8; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .mod-add i { color: var(--neon-green); font-size: 0.8rem; }
+        .mod-obs { 
+            color: #FEF2F2; font-weight: 800; background: var(--neon-red); 
+            padding: 6px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); font-size: 0.9rem; margin-top: 4px;
+        }
+
+        /* Rodapé de Ações */
+        .ticket-footer { padding: 15px 20px; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.02); }
+        
+        .btn-action {
+            width: 100%; border: none; padding: 18px; border-radius: 12px;
+            font-weight: 900; font-size: 1.1rem; cursor: pointer; color: white;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-action:active { transform: scale(0.97); }
+
+        .btn-start { background: rgba(59, 130, 246, 0.1); color: var(--neon-blue); border: 2px solid var(--neon-blue); } 
+        .btn-start:hover { background: var(--neon-blue); color: white; box-shadow: 0 0 20px rgba(59,130,246,0.4); }
+        
+        .btn-ready { background: var(--primary); color: white; box-shadow: 0 8px 20px rgba(255,107,0,0.3); border: 2px solid var(--primary);} 
+        .btn-ready:hover { background: var(--primary-light); border-color: var(--primary-light); }
+        
+        .btn-dispatch { background: transparent; color: var(--neon-green); border: 2px solid var(--neon-green); } 
+        .btn-dispatch:hover { background: var(--neon-green); color: white; box-shadow: 0 0 20px rgba(16,185,129,0.4);}
+
+        /* Empty State Premium */
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 120px 20px; color: var(--text-muted); }
+        .empty-icon { 
+            width: 120px; height: 120px; background: rgba(255,255,255,0.02); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+            font-size: 4rem; color: rgba(255,255,255,0.1); border: 1px dashed rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    
+    <audio id="audio-alert" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
+    <header class="kds-header">
+        <div class="brand">
+            <a href="{% url 'dashboard' %}" title="Voltar ao Dashboard">
+                <i class="fas fa-fire-burner brand-logo"></i> 
+                <span>KDS <span style="font-weight: 300; opacity: 0.7;">PRO</span></span>
+            </a>
+            <span class="badge bg-secondary bg-opacity-25 text-light ms-3 rounded-pill fw-bold" style="font-size: 0.8rem;">{{ restaurante.nome|default:"AlianceFood" }}</span>
+        </div>
+        
+        <div class="clock-container">
+            <div class="live-indicator">
+                <div class="spinner-grow spinner-grow-sm" role="status" style="width: 10px; height: 10px;"></div>
+                Auto-Sync
+            </div>
+            <div class="clock" id="relogio">--:--</div>
+        </div>
+    </header>
+
+    <div class="orders-grid">
+        {% for pedido in pedidos %}
+        <div class="ticket st-{{ pedido.status }}" id="card-{{ pedido.id }}">
+            <div class="ticket-header">
+                <div class="order-id">
+                    <span>#{{ pedido.id }}</span>
+                    <button class="btn-print-sm" onclick="window.open('/imprimir/{{ pedido.id }}/', 'Imprimir', 'width=350,height=600')" title="Imprimir Comanda">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
+                <span class="timer" data-time="{{ pedido.criado_em.isoformat }}">00:00</span>
+            </div>
+
+            <div class="ticket-body">
+                <div class="client-info">
+                    <span class="client-name">{{ pedido.cliente_nome|truncatechars:15 }}</span>
+                    
+                    {% if pedido.origem == 'MESA' or pedido.mesa %}
+                        <div class="badge-origin origin-mesa">
+                            <i class="fas fa-chair"></i> MESA {{ pedido.mesa.numero }}
+                        </div>
+                    {% elif pedido.origem == 'BALCAO' %}
+                        <div class="badge-origin origin-balcao">
+                            <i class="fas fa-store"></i> BALCÃO
+                        </div>
+                    {% else %}
+                        <div class="badge-origin origin-delivery">
+                            <i class="fas fa-motorcycle"></i> DELIVERY
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="items-list">
+                    {% for item in pedido.itens.all %}
+                    <div class="item-row">
+                        <div class="qty">{{ item.quantidade }}</div>
+                        <div>
+                            <div class="item-name">{{ item.produto.nome }}</div>
+                            <div class="mods">
+                                {% for add in item.adicionais.all %}
+                                    <div class="mod-add"><i class="fas fa-plus"></i> {{ add.nome }}</div>
+                                {% endfor %}
+                                {% if item.observacao %}
+                                    <div class="mod-obs"><i class="fas fa-exclamation-triangle"></i> OBS: {{ item.observacao }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="ticket-footer">
+                {% if pedido.status == 'NOVO' %}
+                <button class="btn-action btn-start" onclick="avancarStatus({{ pedido.id }}, this)">
+                    <i class="fas fa-fire-burner"></i> PREPARAR AGORA
+                </button>
+                {% elif pedido.status == 'CONFIRMADO' %}
+                <button class="btn-action btn-ready" onclick="avancarStatus({{ pedido.id }}, this)">
+                    <i class="fas fa-check-circle"></i> MARCAR PRONTO
+                </button>
+                {% elif pedido.status == 'PRONTO' %}
+                <button class="btn-action btn-dispatch" onclick="avancarStatus({{ pedido.id }}, this)">
+                    <i class="fas fa-motorcycle"></i> DESPACHAR
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <div class="empty-icon"><i class="fas fa-mug-hot"></i></div>
+            <h2 class="fw-bold" style="color: white; letter-spacing: -1px;">Chapa Limpa!</h2>
+            <p style="font-size: 1.1rem;">Nenhum pedido aguardando produção no momento.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        // Relógio e Temporizador
+        setInterval(() => {
+            document.getElementById('relogio').innerText = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            
+            document.querySelectorAll('.timer').forEach(el => {
+                const diff = new Date() - new Date(el.getAttribute('data-time'));
+                const min = Math.floor(diff/60000);
+                const sec = Math.floor((diff%60000)/1000);
+                el.innerText = `${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                
+                // Se passar de 15 minutos, o tempo fica vermelho e pisca
+                if(min >= 15) {
+                    el.style.color = 'white';
+                    el.style.backgroundColor = 'var(--neon-red)';
+                    el.style.boxShadow = '0 0 10px rgba(239,68,68,0.5)';
+                }
+            });
+        }, 1000);
+
+        // Auto-refresh da página a cada 15 segundos para atualizar a fila
+        setTimeout(() => { window.location.reload(); }, 15000);
+
+        // Alarme Sonoro para Pedidos Novos
+        window.onload = function() {
+            if(document.querySelector('.st-NOVO')) {
+                try { document.getElementById('audio-alert').play(); } catch(e){}
+            }
+        }
+
+       // Função Avançar Pedido com Feedback Visual Imediato e Segurança CSRF 🚀
+        function avancarStatus(id, btnElement) {
+            const txtOriginal = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSANDO...';
+            btnElement.style.opacity = '0.7';
+            btnElement.disabled = true;
+
+            fetch(`/api/status/${id}/`, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // 👈 O Crachá de Segurança do Django!
+                }
+            })
+            .then(res => {
+                if(!res.ok) throw new Error("Erro no Servidor");
+                return res.json();
+            })
+            .then(data => { 
+                if(data.status === 'ok') {
+                    window.location.reload(); 
+                } else {
+                    btnElement.innerHTML = txtOriginal;
+                    btnElement.style.opacity = '1';
+                    btnElement.disabled = false;
+                    alert("Erro interno: " + data.msg);
+                }
+            })
+            .catch(err => {
+                btnElement.innerHTML = txtOriginal;
+                btnElement.style.opacity = '1';
+                btnElement.disabled = false;
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>

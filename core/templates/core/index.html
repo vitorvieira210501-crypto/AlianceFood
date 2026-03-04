@@ -1,0 +1,836 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block botao_menu %}
+{% endblock %}
+
+{% block content %}
+<style>
+    /* ==========================================
+       🎨 DESIGN SYSTEM: ALIANCEFOOD (CORPO DA LOJA)
+       ========================================== */
+    :root {
+        --primary: {{ config.cor_principal|default:'#FF6B00' }}; 
+        --primary-light: {{ config.cor_principal|default:'#FF6B00' }}cc; 
+        --primary-dark: #222222;
+        --bg-color: #F8FAFC; 
+        --card-bg: #FFFFFF;
+        --text-main: #0F172A;
+        --text-muted: #64748B;
+        --shadow-soft: 0 8px 25px rgba(0, 0, 0, 0.03);
+        --shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.08);
+        --radius-lg: 24px;
+        --radius-md: 16px;
+    }
+    
+    /* 🚀 A MÁGICA: O HTML FICA LIVRE PARA O SENSOR DE ROLAGEM FUNCIONAR */
+    html {
+        scroll-behavior: smooth; 
+    }
+
+    /* 🚀 O BODY RECEBE O FLEXBOX PARA EMPURRAR O FOOTER (Sem quebrar a rolagem) */
+    body {
+        margin: 0; 
+        background-color: var(--bg-color) !important;
+        font-family: 'Inter', sans-serif;
+        color: var(--text-main);
+        display: flex; 
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* O wrapper cresce para preencher o vazio */
+    .page-wrapper { 
+        display: flex; 
+        flex-direction: column; 
+        flex: 1; 
+        width: 100%; 
+    }
+    
+    /* Área dos produtos empurra o rodapé para o fim da tela */
+    #menu-container { 
+        flex: 1; 
+    }
+
+    /* --- ESTILOS DO CABEÇALHO GLOBAL --- */
+    .hero-section {
+        background: var(--card-bg); padding: 80px 24px 35px; 
+        border-bottom-left-radius: 35px; border-bottom-right-radius: 35px;
+        margin-bottom: 10px; box-shadow: var(--shadow-soft);
+        position: relative; overflow: hidden; z-index: 1;
+    }
+    .orb-1 { position: absolute; width: 250px; height: 250px; background: radial-gradient(circle, var(--primary-light) 0%, transparent 70%); top: -80px; right: -50px; border-radius: 50%; opacity: 0.15; z-index: 0; animation: floatOrb 8s ease-in-out infinite; }
+    .orb-2 { position: absolute; width: 200px; height: 200px; background: radial-gradient(circle, #FFB373 0%, transparent 70%); bottom: -50px; left: -50px; border-radius: 50%; opacity: 0.15; z-index: 0; animation: floatOrb 10s ease-in-out infinite reverse; }
+    @keyframes floatOrb { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.05); } 100% { transform: translateY(0) scale(1); } }
+    
+    .top-bar-app { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+    .status-badge { background: rgba(255, 107, 0, 0.1); color: var(--primary-dark); padding: 6px 14px; border-radius: 50px; font-weight: 800; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid rgba(255, 107, 0, 0.2); }
+    .status-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8;} 50% { transform: scale(1.2); opacity: 1;} 100% { transform: scale(0.95); opacity: 0.8;} }
+    
+    /* --- 2. BUSCA INTELIGENTE --- */
+    .search-container { padding: 0 24px 15px; position: relative; z-index: 20; }
+    .search-box {
+        background: var(--card-bg); border-radius: 50px;
+        padding: 15px 24px; display: flex; align-items: center; gap: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03);
+        transition: 0.3s; position: relative; overflow: hidden;
+    }
+    .search-box:focus-within { border-color: var(--primary-light); box-shadow: 0 8px 25px rgba(255,107,0,0.15); transform: translateY(-2px); }
+    .search-input { border: none; outline: none; width: 100%; font-size: 1rem; color: var(--text-main); background: transparent; position: relative; z-index: 2; font-weight: 500; }
+
+    /* --- 3. NAVEGAÇÃO HORIZONTAL (SCROLL-SPY) --- */
+    .nav-cats { 
+        display: flex; 
+        flex-wrap: nowrap; 
+        gap: 12px; 
+        overflow-x: auto; 
+        padding: 15px 24px; 
+        scrollbar-width: none; 
+        position: -webkit-sticky; 
+        position: sticky; 
+        top: 0; 
+        z-index: 100; 
+        background: var(--bg-color); 
+        box-shadow: 0 10px 15px -10px rgba(0,0,0,0.05); 
+    }
+    .nav-cats::-webkit-scrollbar { display: none; } 
+    .cat-tag { white-space: nowrap; padding: 12px 24px; border-radius: 50px; background: var(--card-bg); color: var(--text-muted); font-weight: 700; font-size: 0.9rem; cursor: pointer; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.02); }
+    .cat-tag.active { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 107, 0, 0.25); border: none; }
+
+    /* --- 4. MENU LATERAL --- */
+    .sidebar-menu { border-top-right-radius: 24px; border-bottom-right-radius: 24px; width: 280px; }
+    .sidebar-cat-link { display: block; padding: 15px 20px; color: var(--text-main); font-weight: 700; text-decoration: none; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
+    .sidebar-cat-link:hover { background: #FFF0E6; color: var(--primary); }
+    .sidebar-cat-link.active { background: var(--primary); color: white; box-shadow: var(--shadow-hover); }
+
+    /* --- 5. CARDS DE PRODUTO PREMIUM --- */
+    .category-section { margin-bottom: 50px; scroll-margin-top: 100px; }
+    
+    .category-title { 
+        font-size: 1.4rem; font-weight: 900; color: var(--text-main); 
+        margin: 0 24px 20px; display: flex; align-items: center; gap: 15px;
+    }
+    .category-title::after { 
+        content: ''; flex: 1; height: 2px; background: rgba(0,0,0,0.05); border-radius: 2px;
+    }
+
+    .products-grid { display: grid; gap: 18px; padding: 0 24px; }
+    
+    .product-item { 
+        background: var(--card-bg); border-radius: var(--radius-md); padding: 16px; display: flex; gap: 15px; 
+        align-items: center; box-shadow: var(--shadow-soft); border: 1px solid rgba(0,0,0,0.02); transition: all 0.3s ease; 
+        cursor: pointer; position: relative; z-index: 20; 
+    }
+    .product-item:active { transform: scale(0.97); }
+    .product-item:hover { border-color: rgba(255, 107, 0, 0.3); box-shadow: var(--shadow-hover); transform: translateY(-3px); }
+    
+    .p-img-box { width: 110px; height: 110px; border-radius: 14px; overflow: hidden; flex-shrink: 0; background: #F1F5F9; position: relative;}
+    
+    .p-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .product-item:hover .p-img { transform: scale(1.12); }
+    
+    .btn-add { width: 36px; height: 36px; background: #FFF0E6; color: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; transition: 0.3s; pointer-events: none; }
+    .product-item:hover .btn-add { background: var(--primary); color: white; transform: rotate(90deg); border-radius: 50%; }
+
+    /* --- 6. CARRINHO FLUTUANTE E BOTÕES DE AÇÃO --- */
+    .cart-float-wrapper { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 90; pointer-events: none; }
+    .cart-float-bar { background: var(--text-main); color: white; border-radius: 50px; padding: 18px 24px; display: flex; justify-content: space-between; align-items: center; width: 90%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); transform: translateY(150%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; pointer-events: auto; }
+    .cart-float-bar.visible { transform: translateY(0); }
+    
+    .btn-primary-custom { 
+        background: linear-gradient(135deg, var(--primary), var(--primary-light)); 
+        border: none; color: white; transition: all 0.3s ease;
+    }
+    .btn-primary-custom:hover { 
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary)); 
+        color: white; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+    }
+
+    /* --- 7. RODAPÉ ALIANCEFOOD --- */
+    .site-footer { 
+        margin-top: auto; 
+        background: var(--card-bg); color: var(--text-muted); 
+        padding: 50px 24px 130px; 
+        text-align: center; border-top: 1px solid rgba(0,0,0,0.05); 
+        position: relative; z-index: 10; 
+        width: 100%;
+    }
+    .brand-saas { font-weight: 900; color: var(--primary); display: inline-flex; align-items: center; gap: 5px;}
+    .text-price { color: var(--text-main); font-weight: 900; font-size: 1.15rem;}
+    .hidden { display: none !important; }
+</style>
+
+<div class="offcanvas offcanvas-start sidebar-menu border-0 shadow" tabindex="-1" id="sidebarMenu">
+    <div class="offcanvas-header border-bottom p-4">
+        <h5 class="offcanvas-title fw-bold text-dark fs-4">Categorias</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-3">
+        <p class="text-muted small fw-bold mb-3 px-2">NAVEGUE PELO CARDÁPIO</p>
+        <a href="javascript:void(0)" onclick="deslizarPara('topo')" class="sidebar-cat-link active" data-target="topo">
+            <i class="fas fa-home me-2 opacity-50"></i> Início
+        </a>
+        {% for cat in categorias %}
+            {% if cat.produto_set.exists %}
+            <a href="javascript:void(0)" onclick="deslizarPara('cat-{{ cat.id }}')" class="sidebar-cat-link" data-target="cat-{{ cat.id }}">
+                {{ cat.nome }}
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    <div class="offcanvas-footer p-4 border-top text-center bg-light">
+        <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">Tecnologia por <span class="brand-saas"><i class="fas fa-bolt"></i> AlianceFood</span></p>
+    </div>
+</div>
+
+<div class="page-wrapper" id="topo">
+
+    {% if config and not config.esta_aberta_agora %}
+    <div class="alert text-center fw-bold m-0" style="background: #FEF2F2; color: #DC2626; border-radius: 0; padding: 15px; font-size: 1rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-soft);">
+        <i class="fas fa-door-closed mb-1 fs-3 d-block"></i>
+        {{ config.mensagem_fechado|default:'Estamos fechados no momento.'|escapejs }}
+    </div>
+    {% endif %}
+
+    <div class="px-4 mt-3 mb-3">
+        <div class="p-4 rounded-4 shadow-sm" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between;">
+            <div style="position: relative; z-index: 2; cursor: pointer;" onclick="document.getElementById('searchInput').focus()">
+                <span class="badge bg-white text-dark mb-2 shadow-sm" style="font-weight: 800; font-size: 0.7rem; letter-spacing: 1px;">CARDÁPIO DIGITAL</span>
+                <h4 class="fw-bold mb-1" style="font-size: 1.4rem;">O que vamos pedir hoje?</h4>
+                <p class="mb-0 small" style="opacity: 0.9; font-weight: 500;">Explore nossas delícias abaixo.</p>
+            </div>
+            <div style="position: relative; z-index: 2;">
+                <button data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" style="width: 50px; height: 50px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); color: white; cursor: pointer; transition: 0.2s;" onmousedown="this.style.transform='scale(0.9)'" onmouseup="this.style.transform='scale(1)'">
+                    <i class="fas fa-bars fs-4"></i>
+                </button>
+            </div>
+            <i class="fas fa-hamburger position-absolute" style="font-size: 8rem; right: -20px; bottom: -30px; opacity: 0.15; transform: rotate(-20deg); pointer-events: none;"></i>
+        </div>
+    </div>
+
+    {% if mesa %}
+    <div class="px-4 mb-3">
+        <div class="p-3 rounded-4 text-center" style="background: #FFF0E6; border: 1px dashed var(--primary-light); position: relative; z-index: 1;">
+            <h5 class="fw-bold mb-1" style="color: var(--primary-dark);"><i class="fas fa-chair me-1"></i> Mesa {{ mesa.numero }}</h5>
+            <p class="small text-muted mb-3">Seus pedidos serão entregues diretamente na sua mesa.</p>
+            <button class="btn btn-primary-custom w-100 py-2 fw-bold rounded-pill shadow-sm" onclick="abrirModalConta()">
+                <i class="fas fa-receipt me-2"></i> PEDIR A CONTA
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fas fa-search" style="color: var(--primary-light); font-size: 1.2rem; position: relative; z-index: 2;"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar pratos ou lanches..." onkeyup="filtrarBusca()">
+        </div>
+    </div>
+
+    <nav class="nav-cats" id="nav-horizontal">
+        {% for cat in categorias %}
+            {% if cat.produto_set.exists %}
+            <div onclick="deslizarPara('cat-{{ cat.id }}')" class="cat-tag {% if forloop.first %}active{% endif %}" data-target="cat-{{ cat.id }}">{{ cat.nome }}</div>
+            {% endif %}
+        {% endfor %}
+    </nav>
+
+    <main id="menu-container">
+        {% for cat in categorias %}
+            {% if cat.produto_set.exists %}
+            <section class="category-section" id="cat-{{ cat.id }}">
+                <h2 class="category-title">{{ cat.nome }}</h2>
+                
+                <div class="products-grid">
+                    {% for prod in cat.produto_set.all %}
+                        {% if prod.ativo %}
+                        <div class="product-item animate-enter" 
+                             data-name="{{ prod.nome|lower }}"
+                             {% if config.esta_aberta_agora %}
+                                onclick="openProductModal(
+                                    '{{ prod.id }}',
+                                    '{{ prod.nome|escapejs }}', 
+                                    '{{ prod.preco }}', 
+                                    '{{ prod.descricao|escapejs }}', 
+                                    '{% if prod.imagem %}{{ prod.imagem.url }}{% endif %}',
+                                    [ {% for add in prod.adicionais_disponiveis.all %}
+                                        {'id': {{ add.id }}, 'nome': '{{ add.nome|escapejs }}', 'preco': parseFloat('{{ add.preco }}'.replace(',', '.')) },
+                                      {% endfor %} ],
+                                    '{{ prod.sabores|default:""|escapejs }}',
+                                    '{{ prod.tipo_escolha_sabores }}',
+                                    {{ prod.limite_sabores|default:1 }}
+                                )"
+                             {% else %}
+                                onclick="alert('{{ config.mensagem_fechado|default:'Estamos fechados no momento.'|escapejs }}')"
+                             {% endif %}>
+                            
+                            <div class="p-img-box">
+                                {% if prod.imagem %}
+                                    <img src="{{ prod.imagem.url }}" class="p-img" loading="lazy">
+                                {% else %}
+                                    <div class="d-flex w-100 h-100 align-items-center justify-content-center text-muted" style="background: #f8fafc;"><i class="fas fa-utensils fs-3" style="color: #cbd5e1;"></i></div>
+                                {% endif %}
+                            </div>
+
+                            <div style="flex: 1; pointer-events: none;">
+                                <h3 style="font-size: 1.05rem; font-weight: 800; margin: 0 0 6px;">{{ prod.nome }}</h3>
+                                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 12px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ prod.descricao|default:'Delicioso e preparado na hora para você.' }}
+                                </p>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="text-price">R$ {{ prod.preco }}</span>
+                                    {% if config.esta_aberta_agora %}
+                                        <div class="btn-add"><i class="fas fa-plus"></i></div>
+                                    {% else %}
+                                        <div class="btn-add" style="background: #F1F5F9; color: #94A3B8;"><i class="fas fa-lock"></i></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        {% endfor %}
+        
+        <div id="no-results" style="display: none; text-align: center; padding: 60px 20px;">
+            <div style="width: 80px; height: 80px; background: #FFF0E6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <i class="fas fa-search" style="font-size: 2rem; color: var(--primary);"></i>
+            </div>
+            <h4 class="fw-bold text-dark">Nada encontrado</h4>
+            <p style="color: var(--text-muted);">Tente buscar por outro termo ou navegue pelas categorias.</p>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <h5 style="color: var(--text-main); font-weight: 800; margin-bottom: 5px;">{{ config.nome|default:"Meu Restaurante" }}</h5>
+        <div style="border-top: 1px solid rgba(0,0,0,0.05); margin: 20px auto; width: 60%;"></div>
+        <p style="font-size: 0.85rem; margin-bottom: 15px;">Powered by <span class="brand-saas"><i class="fas fa-bolt"></i> AlianceFood</span></p>
+        <a href="/admin/" style="color: var(--text-muted); text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s;">
+            <i class="fas fa-lock small"></i> Acesso Restrito
+        </a>
+    </footer>
+
+</div> 
+
+{% if config.esta_aberta_agora %}
+<div class="cart-float-wrapper">
+    <div id="cartBar" class="cart-float-bar" onclick="abrirCheckout()">
+        <div class="d-flex align-items-center">
+            <div class="cart-count-badge" id="cartCount">0</div>
+            <span style="font-weight: 700; letter-spacing: 0.5px;">Ver Sacola</span>
+        </div>
+        <div style="font-weight: 900; font-size: 1.1rem;" id="cartTotal">R$ 0,00</div>
+    </div>
+</div>
+{% endif %}
+
+<div class="modal fade" id="prodModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0">
+            <div style="height: 240px; overflow: hidden; position: relative; background: #f8fafc;">
+                <img id="m-img" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" class="btn-close bg-white p-2 position-absolute top-0 end-0 m-3 rounded-circle opacity-100 shadow" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <h3 id="m-name" class="fw-bold mb-1 text-dark">Nome</h3>
+                <h4 id="m-price" style="color: var(--primary); font-weight: 900;" class="mb-3">R$ 0,00</h4>
+                <p id="m-desc" class="text-muted small mb-4">Descrição</p>
+                
+                <div id="area-sabores"></div> 
+                <div id="area-adicionais"></div>
+                <div id="area-obs"></div>
+                
+                <div class="d-flex align-items-center gap-3 mt-4 pt-4 border-top">
+                    <div class="d-flex align-items-center bg-light rounded-pill p-1 border">
+                        <button class="btn btn-sm rounded-circle" onclick="updateQty(-1)" style="width: 36px; height: 36px; font-weight: bold;">-</button>
+                        <span id="m-qty" class="mx-3 fw-bold fs-5">1</span>
+                        <button class="btn btn-sm rounded-circle" onclick="updateQty(1)" style="width: 36px; height: 36px; font-weight: bold;">+</button>
+                    </div>
+                    <button class="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold shadow-sm d-flex justify-content-between align-items-center px-4" onclick="addToCart()">
+                        <span>Adicionar</span>
+                        <span id="m-total-btn" class="bg-white rounded-pill px-2 py-1" style="color: var(--primary); font-size: 0.9rem;">R$ 0,00</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="checkoutModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0" id="checkoutContent">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h4 class="fw-bold m-0 text-dark">Finalizar Pedido</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="checkoutItems" class="mb-4"></div>
+                
+                <div class="p-4 rounded-4 mb-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                    <h6 class="fw-bold small text-muted mb-3"><i class="far fa-user me-2"></i>SEUS DADOS</h6>
+                    <input type="text" id="cliNome" class="form-control border-0 mb-3 p-3 rounded-3 shadow-sm" placeholder="Como podemos te chamar?">
+                    <input type="tel" id="cliZap" class="form-control border-0 p-3 rounded-3 shadow-sm" placeholder="WhatsApp (DDD + Número)">
+                </div>
+                
+                <div id="areaEntrega" class="p-4 rounded-4 mb-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                    <h6 class="fw-bold small text-muted mb-3"><i class="fas fa-motorcycle me-2"></i>ENTREGA OU RETIRADA?</h6>
+                    <div class="btn-group w-100 mb-4 shadow-sm" role="group">
+                        <input type="radio" class="btn-check" name="tipoEntrega" id="tipoDelivery" value="ENTREGA" checked onchange="updateCartUI()">
+                        <label class="btn btn-outline-dark py-2 fw-bold" for="tipoDelivery">🛵 Entrega</label>
+                        <input type="radio" class="btn-check" name="tipoEntrega" id="tipoRetirada" value="RETIRADA" onchange="updateCartUI()">
+                        <label class="btn btn-outline-dark py-2 fw-bold" for="tipoRetirada">🏪 Retirar</label>
+                    </div>
+                    
+                    <div id="campoEndereco">
+                        <input type="tel" id="cliCep" class="form-control border-0 mb-3 p-3 rounded-3 shadow-sm" placeholder="CEP (Apenas números)" maxlength="9" onblur="buscarCEP(this.value)">
+                        <select id="cliBairro" class="form-select border-0 mb-3 p-3 rounded-3 fw-bold text-dark shadow-sm" onchange="updateCartUI()">
+                            <option value="" data-taxa="0">📍 Selecione seu Bairro...</option>
+                        </select>
+                        <input type="text" id="cliRua" class="form-control border-0 mb-3 p-3 rounded-3 shadow-sm" placeholder="Rua / Avenida">
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="tel" id="cliNumero" class="form-control border-0 p-3 rounded-3 shadow-sm" placeholder="Número" style="width: 35%;">
+                            <input type="text" id="cliRef" class="form-control border-0 p-3 rounded-3 shadow-sm" placeholder="Complemento / Referência" style="width: 65%;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="areaMesa" class="alert text-center fw-bold hidden" style="background: #FFF0E6; color: var(--primary-dark); border: 1px dashed var(--primary-light);">
+                    <i class="fas fa-utensils me-2"></i> Pedido para a MESA <span id="mesaNumDisplay">--</span>
+                </div>
+                
+                <div id="areaPagamento" class="mb-2 p-4 rounded-4" style="background: #F8FAFC; border: 1px solid #E2E8F0;">
+                    <h6 class="fw-bold small text-muted mb-3"><i class="fas fa-wallet me-2"></i>PAGAMENTO</h6>
+                    <div class="btn-group w-100 shadow-sm" role="group">
+                        <input type="radio" class="btn-check" name="pgto" id="pgtoPix" value="PIX" checked>
+                        <label class="btn btn-outline-dark py-2 fw-bold" for="pgtoPix"><i class="fab fa-pix text-success mb-1 d-block"></i>PIX</label>
+                        <input type="radio" class="btn-check" name="pgto" id="pgtoCard" value="CARTAO">
+                        <label class="btn btn-outline-dark py-2 fw-bold" for="pgtoCard"><i class="fas fa-credit-card mb-1 d-block"></i>Cartão</label>
+                        <input type="radio" class="btn-check" name="pgto" id="pgtoDin" value="DINHEIRO">
+                        <label class="btn btn-outline-dark py-2 fw-bold" for="pgtoDin"><i class="fas fa-money-bill-wave mb-1 d-block text-success"></i>Dinheiro</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-0 flex-column px-4 pb-4 pt-0">
+                <div class="d-flex justify-content-between w-100 mb-1 small text-muted">
+                    <span>Subtotal</span>
+                    <span id="checkoutSubtotal" class="fw-bold">R$ 0,00</span>
+                </div>
+                <div class="d-flex justify-content-between w-100 mb-3 small fw-bold" style="color: var(--primary);" id="linhaTaxaEntrega">
+                    <span>Taxa de Entrega</span>
+                    <span id="checkoutTaxa">+ R$ 0,00</span>
+                </div>
+                <div class="d-flex justify-content-between w-100 align-items-center mb-4 border-top pt-3">
+                    <span class="text-dark fw-bold fs-5">Total a Pagar</span>
+                    <span class="fs-3 fw-900 text-dark" id="checkoutTotal">R$ 0,00</span>
+                </div>
+                <button id="btnFinalizar" class="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold shadow-sm fs-5" onclick="enviarPedido()">
+                    Confirmar Pedido <i class="fas fa-check-circle ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="contaModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="fw-bold text-dark">Encerrar Mesa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4" id="contaModalBody"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = "{% url 'manifest_pwa' config.slug %}";
+    document.head.appendChild(manifestLink);
+
+    const themeMeta = document.createElement('meta');
+    themeMeta.name = 'theme-color';
+    themeMeta.content = "{{ config.cor_principal }}";
+    document.head.appendChild(themeMeta);
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+        });
+    }
+
+    function buscarCEP(cep) {
+        var cepLimpo = cep.replace(/\D/g, '');
+        if (cepLimpo.length === 8) {
+            document.getElementById('cliRua').value = "A procurar...";
+            fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
+                .then(resposta => resposta.json())
+                .then(dados => {
+                    if (!dados.erro) {
+                        document.getElementById('cliRua').value = dados.logradouro;
+                        document.getElementById('cliNumero').focus();
+                        let selectBairro = document.getElementById('cliBairro');
+                        for(let i=0; i < selectBairro.options.length; i++) {
+                            if(selectBairro.options[i].text.toUpperCase().includes(dados.bairro.toUpperCase())) {
+                                selectBairro.selectedIndex = i;
+                                updateCartUI(); break;
+                            }
+                        }
+                    } else {
+                        document.getElementById('cliRua').value = "";
+                        alert("CEP não encontrado. Por favor, digite o endereço manualmente.");
+                    }
+                })
+                .catch(erro => { document.getElementById('cliRua').value = ""; console.error('Erro ao buscar o CEP:', erro); });
+        }
+    }
+
+    function deslizarPara(id) {
+        const offcanvasEl = document.getElementById('sidebarMenu');
+        let atraso = 0;
+        
+        if(offcanvasEl && offcanvasEl.classList.contains('show')) {
+            const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl) || bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+            offcanvas.hide();
+            atraso = 350; 
+        }
+
+        setTimeout(() => {
+            if(id === 'topo') {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            } else {
+                const secao = document.getElementById(id);
+                if(secao) {
+                    const y = secao.getBoundingClientRect().top + window.scrollY - 130; 
+                    window.scrollTo({top: y, behavior: 'smooth'});
+                }
+            }
+        }, atraso);
+    }
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        const sections = document.querySelectorAll('.category-section');
+        
+        sections.forEach(sec => {
+            const secTop = sec.getBoundingClientRect().top;
+            if(secTop <= 160) { current = sec.getAttribute('id'); }
+        });
+
+        if ((window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight - 20) {
+            if(sections.length > 0) {
+                current = sections[sections.length - 1].getAttribute('id');
+            }
+        }
+
+        document.querySelectorAll('.cat-tag').forEach(el => {
+            el.classList.remove('active');
+            if(el.getAttribute('data-target') === current) {
+                el.classList.add('active');
+                el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        });
+        document.querySelectorAll('.sidebar-cat-link').forEach(el => {
+            el.classList.remove('active');
+            if(el.getAttribute('data-target') === current) { el.classList.add('active'); }
+        });
+    });
+
+    function filtrarBusca() {
+        const termo = document.getElementById('searchInput').value.toLowerCase();
+        let achouAlgo = false;
+        document.querySelectorAll('.product-item').forEach(card => {
+            const nome = card.getAttribute('data-name');
+            if (nome.includes(termo)) {
+                card.classList.remove('hidden'); achouAlgo = true;
+            } else { card.classList.add('hidden'); }
+        });
+        document.querySelectorAll('.category-section').forEach(section => {
+            const produtosVisiveis = section.querySelectorAll('.product-item:not(.hidden)').length;
+            section.style.display = produtosVisiveis > 0 ? 'block' : 'none';
+        });
+        document.getElementById('no-results').style.display = achouAlgo ? 'none' : 'block';
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const mesaParam = urlParams.get('mesa');
+    if (mesaParam) sessionStorage.setItem('mesa_id', mesaParam);
+    const MESA_ATUAL = sessionStorage.getItem('mesa_id');
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if(MESA_ATUAL) {
+            document.getElementById('areaEntrega').classList.add('hidden');
+            document.getElementById('areaPagamento').classList.add('hidden');
+            document.getElementById('linhaTaxaEntrega').style.display = 'none';
+            document.getElementById('areaMesa').classList.remove('hidden');
+            document.getElementById('mesaNumDisplay').innerText = MESA_ATUAL;
+            document.getElementById('btnFinalizar').innerHTML = 'Pedir para a Mesa <i class="fas fa-bell ms-2"></i>';
+        }
+
+        fetch('/api/bairros/{{ config.slug }}/')
+        .then(res => res.json())
+        .then(data => {
+            const select = document.getElementById('cliBairro');
+            if(select && data.bairros) {
+                data.bairros.forEach(b => { select.innerHTML += `<option value="${b.id}" data-taxa="${b.taxa}">${b.nome} (+ R$ ${parseFloat(b.taxa).toFixed(2)})</option>`; });
+            }
+        });
+    });
+
+    let currentProd = {}; let cart = [];
+    let modalProd = new bootstrap.Modal(document.getElementById('prodModal'));
+    let modalCheckout = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    let modalConta = new bootstrap.Modal(document.getElementById('contaModal'));
+
+    function abrirModalConta() { 
+        const mesaId = "{{ mesa.numero|default:'' }}" || MESA_ATUAL; 
+        if(!mesaId) { alert("⚠️ Número da mesa não identificado!"); return; }
+        document.getElementById('contaModalBody').innerHTML = `<div class="py-3"><div style="width: 80px; height: 80px; background: #FFF0E6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;"><i class="fas fa-receipt text-primary fa-2x"></i></div><h4 class="fw-bold mb-2">Pedir a conta?</h4><p class="text-muted mb-4">Sua mesa será encerrada. O pagamento pode ser feito no balcão.</p><button onclick="fecharContaMesa(${mesaId})" class="btn btn-primary-custom w-100 py-3 fw-bold rounded-pill shadow-sm">SIM, PEDIR A CONTA</button></div>`;
+        modalConta.show();
+    }
+
+    function fecharContaMesa(mesaId) {
+        document.getElementById('contaModalBody').innerHTML = '<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary);"></i><p class="mt-3 fw-bold">Calculando conta...</p></div>';
+        
+        fetch(`/api/fechar_mesa/${mesaId}/`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' }, 
+            body: JSON.stringify({ pgto: 'CAIXA', restaurante_id: '{{ config.id }}' }) 
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'sucesso') {
+                document.getElementById('contaModalBody').innerHTML = `<div class="py-4 text-center"><i class="fas fa-check-circle text-success fa-4x mb-3"></i><h4 class="fw-bold mb-3">Conta Solicitada!</h4><p class="text-dark fs-5 fw-bold mb-1">${data.msg}</p><button class="btn btn-dark mt-4 w-100 py-3 rounded-pill fw-bold" onclick="finalizarMesa()">Entendido</button></div>`;
+            } else {
+                document.getElementById('contaModalBody').innerHTML = `<div class="py-4 text-center"><i class="fas fa-exclamation-circle text-danger fa-4x mb-3"></i><h4 class="fw-bold">Ops!</h4><p class="text-muted">${data.msg}</p><button class="btn btn-dark mt-3 px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Fechar</button></div>`;
+            }
+        });
+    }
+
+    function finalizarMesa() { sessionStorage.removeItem('mesa_id'); window.location.href = '/loja/{{ config.slug }}/'; }
+
+    function openProductModal(id, name, price, desc, img, adicionais=[], saboresStr="", tipoEscolha="CHECKBOX", maxSabores=1) {
+        currentProd = { id: id, name: name, basePrice: parseFloat(price.replace(',', '.')), qty: 1, adicionais: [], obs: '', tipoEscolha: tipoEscolha, maxSabores: maxSabores };
+        
+        document.getElementById('m-name').innerText = name; document.getElementById('m-desc').innerText = desc;
+        document.getElementById('m-img').src = img || 'https://via.placeholder.com/500x300?text=Sem+Foto'; document.getElementById('m-qty').innerText = 1;
+        
+        const areaSabores = document.getElementById('area-sabores'); areaSabores.innerHTML = '';
+        
+        if(saboresStr && saboresStr.trim() !== "") {
+            const saboresArr = saboresStr.split(',').map(s => s.trim());
+            let tituloMenu = "";
+            if (tipoEscolha === 'QUANTIDADE') {
+                tituloMenu = `ESCOLHA EXATAMENTE ${maxSabores} UNIDADES`;
+            } else {
+                tituloMenu = maxSabores > 1 ? `ESCOLHA 1 (INTEIRA) OU ATÉ ${maxSabores} (MEIO A MEIO)` : `ESCOLHA 1 OPÇÃO`;
+            }
+            
+            let html = `<div class="d-flex justify-content-between align-items-center mt-4 mb-2 p-3 rounded-3" style="background: #F8FAFC; border: 1px solid #E2E8F0;"><h6 class="fw-bold text-dark small m-0" style="line-height: 1.4;">${tituloMenu}</h6><span id="sabor-total-badge" class="badge bg-dark p-2" style="white-space: nowrap;">0 / ${maxSabores}</span></div>`;
+            
+            saboresArr.forEach((sabor, idx) => {
+                if(tipoEscolha === 'QUANTIDADE') {
+                    html += `<div class="d-flex justify-content-between align-items-center p-3 border-bottom"><span class="fw-bold text-dark">${sabor}</span><div class="d-flex align-items-center bg-light rounded-pill p-1 border"><button class="btn btn-sm rounded-circle fw-bold text-danger" onclick="updateSaborQty(${idx}, -1)" style="width: 32px; height: 32px; padding:0;">-</button><span id="sabor-qty-${idx}" class="mx-2 fw-bold sabor-qtd-val" data-name="${sabor}" style="min-width: 20px; text-align: center;">0</span><button class="btn btn-sm rounded-circle fw-bold text-success" onclick="updateSaborQty(${idx}, 1)" style="width: 32px; height: 32px; padding:0;">+</button></div></div>`;
+                } else {
+                    html += `<div class="d-flex justify-content-between align-items-center p-3 border-bottom" style="cursor:pointer; transition: 0.2s;" onclick="toggleSaborCheck(this)"><span class="fw-bold text-dark">${sabor}</span><div class="form-check m-0" style="pointer-events: none;"><input class="form-check-input sabor-chk" type="checkbox" value="${sabor}" style="transform: scale(1.3);"></div></div>`;
+                }
+            });
+            areaSabores.innerHTML = html;
+        }
+        
+        const areaAdds = document.getElementById('area-adicionais'); areaAdds.innerHTML = '';
+        if(adicionais.length > 0) {
+            areaAdds.innerHTML = '<h6 class="fw-bold text-muted small mt-4 mb-3">ADICIONAIS EXTRAS</h6>';
+            adicionais.forEach(add => { areaAdds.innerHTML += `<div class="d-flex justify-content-between align-items-center p-3 border rounded-3 mb-2" style="cursor:pointer; background: #fff;" onclick="toggleAdd(this)"><div class="form-check m-0"><input class="form-check-input" type="checkbox" value="${add.preco}" data-id="${add.id}" data-name="${add.nome}" onchange="recalcTotal()"><label class="form-check-label ms-2 fw-bold text-dark">${add.nome}</label></div><span class="fw-bold" style="color: var(--primary);">+ R$ ${add.preco.toFixed(2)}</span></div>`; });
+        }
+        
+        document.getElementById('area-obs').innerHTML = `<div class="mt-4"><label class="fw-bold text-muted small mb-2">ALGUMA OBSERVAÇÃO?</label><textarea id="m-obs" class="form-control bg-light border-0 p-3 rounded-3" rows="2" placeholder="Ex: Tirar a cebola..."></textarea></div>`;
+        recalcTotal(); modalProd.show();
+    }
+
+    function updateSaborQty(idx, val) {
+        const span = document.getElementById(`sabor-qty-${idx}`); let current = parseInt(span.innerText); let totalSelecionado = 0;
+        document.querySelectorAll('.sabor-qtd-val').forEach(el => totalSelecionado += parseInt(el.innerText));
+        if (val > 0 && totalSelecionado >= currentProd.maxSabores) { alert(`Limite de ${currentProd.maxSabores} atingido!`); return; }
+        if (current + val >= 0) {
+            span.innerText = current + val; let novoTotal = totalSelecionado + val; let badge = document.getElementById('sabor-total-badge');
+            if (badge) { badge.innerText = `${novoTotal} / ${currentProd.maxSabores}`; if (novoTotal === currentProd.maxSabores) badge.classList.replace('bg-dark', 'bg-success'); else badge.classList.replace('bg-success', 'bg-dark'); }
+        }
+    }
+
+    function toggleSaborCheck(div) {
+        const chk = div.querySelector('.sabor-chk');
+        if(chk.checked) { chk.checked = false; } else {
+            const marcados = document.querySelectorAll('.sabor-chk:checked').length;
+            if(marcados >= currentProd.maxSabores) { alert(`Você só pode escolher até ${currentProd.maxSabores} opções!`); return; }
+            chk.checked = true;
+        }
+        const novosMarcados = document.querySelectorAll('.sabor-chk:checked').length;
+        const badge = document.getElementById('sabor-total-badge');
+        if(badge) { 
+            badge.innerText = `${novosMarcados} / ${currentProd.maxSabores}`; 
+            if(novosMarcados > 0) badge.classList.replace('bg-dark', 'bg-success'); 
+            else badge.classList.replace('bg-success', 'bg-dark'); 
+        }
+    }
+
+    function toggleAdd(div) { const chk = div.querySelector('input'); if(event.target !== chk) { chk.checked = !chk.checked; recalcTotal(); } }
+    
+    function recalcTotal() {
+        let totalAdd = 0; currentProd.adicionais = [];
+        document.querySelectorAll('#area-adicionais input:checked').forEach(chk => { let val = parseFloat(chk.value); totalAdd += val; currentProd.adicionais.push({id: chk.dataset.id, nome: chk.dataset.name, preco: val}); });
+        const totalUnit = currentProd.basePrice + totalAdd; currentProd.finalPrice = totalUnit;
+        document.getElementById('m-price').innerText = 'R$ ' + totalUnit.toFixed(2); document.getElementById('m-total-btn').innerText = '+ R$ ' + (totalUnit * currentProd.qty).toFixed(2);
+    }
+    
+    function updateQty(n) { if(currentProd.qty + n >= 1) { currentProd.qty += n; document.getElementById('m-qty').innerText = currentProd.qty; recalcTotal(); } }
+
+    function addToCart() {
+        let finalObs = document.getElementById('m-obs').value.trim(); 
+        let saboresEscolhidos = []; 
+        let temSabores = document.getElementById('area-sabores').innerHTML !== ''; 
+        let totalSelecionado = 0;
+
+        if (temSabores) {
+            if (currentProd.tipoEscolha === 'QUANTIDADE') {
+                document.querySelectorAll('.sabor-qtd-val').forEach(el => { let qtd = parseInt(el.innerText); if(qtd > 0) { saboresEscolhidos.push(`${qtd}x ${el.getAttribute('data-name')}`); totalSelecionado += qtd; } });
+                if (totalSelecionado < currentProd.maxSabores) { alert(`Escolha exatamente as ${currentProd.maxSabores} unidades.`); return; }
+                finalObs = finalObs ? `SABORES: ${saboresEscolhidos.join(' | ')} \n(Obs: ${finalObs})` : `SABORES: ${saboresEscolhidos.join(' | ')}`;
+            } else {
+                document.querySelectorAll('.sabor-chk:checked').forEach(chk => { saboresEscolhidos.push(chk.value); totalSelecionado++; });
+                if (totalSelecionado === 0) { alert(`Escolha pelo menos 1 sabor!`); return; }
+                
+                let textoSabores = (totalSelecionado === 1) ? `🍕 INTEIRA: ${saboresEscolhidos[0]}` : `🍕 MEIO A MEIO: ${saboresEscolhidos.join(' e ')}`;
+                finalObs = finalObs ? `${textoSabores} \n(Obs: ${finalObs})` : textoSabores;
+            }
+        }
+        
+        currentProd.obs = finalObs; cart.push({...currentProd}); updateCartUI(); modalProd.hide();
+    }
+
+    function updateCartUI() {
+        const count = cart.reduce((acc, item) => acc + item.qty, 0); const subtotal = cart.reduce((acc, item) => acc + (item.finalPrice * item.qty), 0); let taxa = 0;
+        if (!MESA_ATUAL) {
+            const tipo = document.querySelector('input[name="tipoEntrega"]:checked');
+            if (tipo && tipo.value === 'ENTREGA') {
+                const selectBairro = document.getElementById('cliBairro');
+                if (selectBairro && selectBairro.selectedIndex > 0) taxa = parseFloat(selectBairro.options[selectBairro.selectedIndex].getAttribute('data-taxa'));
+                document.getElementById('campoEndereco').style.display = 'block'; document.getElementById('linhaTaxaEntrega').style.display = 'flex';
+            } else { document.getElementById('campoEndereco').style.display = 'none'; document.getElementById('linhaTaxaEntrega').style.display = 'none'; }
+        }
+        const totalFinal = subtotal + taxa; const bar = document.getElementById('cartBar');
+        if(bar) {
+            document.getElementById('cartCount').innerText = count; document.getElementById('cartTotal').innerText = 'R$ ' + subtotal.toFixed(2);
+            if(document.getElementById('checkoutSubtotal')) document.getElementById('checkoutSubtotal').innerText = 'R$ ' + subtotal.toFixed(2);
+            if(document.getElementById('checkoutTaxa')) document.getElementById('checkoutTaxa').innerText = '+ R$ ' + taxa.toFixed(2);
+            if(document.getElementById('checkoutTotal')) document.getElementById('checkoutTotal').innerText = 'R$ ' + totalFinal.toFixed(2);
+            if(count > 0) bar.classList.add('visible'); else bar.classList.remove('visible');
+        }
+    }
+
+    function abrirCheckout() {
+        const lista = document.getElementById('checkoutItems'); lista.innerHTML = '';
+        if(cart.length === 0) { lista.innerHTML = '<p class="text-center text-muted py-4">Sua sacola está vazia.</p>'; } 
+        else {
+            cart.forEach((item, index) => {
+                let addsHtml = item.adicionais.map(a => `<small class="d-block" style="color: var(--primary);">+ ${a.nome}</small>`).join('');
+                let obsHtml = item.obs ? `<small class="text-muted d-block mt-1" style="white-space: pre-line;"><i class="fas fa-info-circle"></i> ${item.obs}</small>` : '';
+                lista.innerHTML += `<div class="checkout-item mb-3 p-3 bg-white rounded-3 border"><div style="flex:1"><div class="fw-bold text-dark">${item.qty}x ${item.name}</div>${addsHtml} ${obsHtml}</div><div class="d-flex flex-column align-items-end gap-2"><span class="fw-bold text-dark">R$ ${(item.finalPrice * item.qty).toFixed(2)}</span><div class="btn-remove px-3 py-1 bg-light text-danger rounded-pill shadow-sm" style="font-size: 0.8rem; cursor: pointer;" onclick="removerItem(${index})"><i class="fas fa-trash me-1"></i> Remover</div></div></div>`;
+            });
+        }
+        updateCartUI(); modalCheckout.show();
+    }
+
+    function removerItem(index) { cart.splice(index, 1); updateCartUI(); abrirCheckout(); if(cart.length === 0) modalCheckout.hide(); }
+
+    function enviarPedido() {
+        if(cart.length === 0) return;
+        const nome = document.getElementById('cliNome').value; const zap = document.getElementById('cliZap').value;
+        let pgto = 'CAIXA'; let tipoEntrega = 'MESA'; let bairroId = '';
+        
+        if (!MESA_ATUAL) { 
+            pgto = document.querySelector('input[name="pgto"]:checked').value; 
+            tipoEntrega = document.querySelector('input[name="tipoEntrega"]:checked').value; 
+        }
+        
+        if(!nome) { alert("Informe seu Nome para prosseguir."); return; }
+        let zapLimpo = zap.replace(/\D/g, ''); 
+        if(zapLimpo.length < 10) { alert("⚠️ Por favor, informe um WhatsApp válido com o DDD."); return; }
+        
+        let enderecoFormatado = '';
+        
+        if(!MESA_ATUAL && tipoEntrega === 'ENTREGA') {
+            bairroId = document.getElementById('cliBairro').value; if(!bairroId) { alert("📍 Selecione o seu Bairro!"); return; }
+            
+            const cep = document.getElementById('cliCep').value || 'Sem CEP';
+            const rua = document.getElementById('cliRua').value;
+            const numero = document.getElementById('cliNumero').value;
+            const ref = document.getElementById('cliRef').value;
+            
+            if(!rua || !numero) { alert("🛵 Informe a rua e o número para a entrega!"); return; }
+            
+            enderecoFormatado = `CEP: ${cep} - ${rua}, ${numero}. ${ref}`;
+        }
+        
+        const btn = document.getElementById('btnFinalizar'); const txtOriginal = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...'; btn.disabled = true;
+        
+        const payload = {
+            restaurante_id: '{{ config.id }}',
+            nome: nome, whatsapp: zapLimpo, endereco: enderecoFormatado, mesa_id: MESA_ATUAL || '', origem: MESA_ATUAL ? 'MESA' : 'SITE',
+            forma_pagamento: pgto, tipo_entrega: tipoEntrega, bairro_id: bairroId, 
+            itens: cart.map(item => ({ id: item.id, qty: item.qty, obs: item.obs, adicionais_ids: item.adicionais.map(a => a.id) }))
+        };
+        
+        fetch('/api/finalizar/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'sucesso') {
+                if(MESA_ATUAL) { 
+                    alert("😋 Seu pedido foi enviado para a cozinha!"); 
+                    cart = []; updateCartUI(); modalCheckout.hide(); btn.disabled = false; btn.innerHTML = txtOriginal; 
+                } 
+                else if(data.forma_pagamento === 'PIX' && data.qr_code_base64) {
+                    const modalContent = document.getElementById('checkoutContent');
+                    modalContent.innerHTML = `
+                        <div class="modal-header border-0 pb-0 pt-4 px-4">
+                            <h5 class="fw-bold text-dark"><i class="fas fa-qrcode text-success me-2"></i> Pague seu PIX</h5>
+                        </div>
+                        <div class="modal-body text-center p-4">
+                            <p class="text-muted mb-4">Escaneie o QR Code no app do seu banco para liberar o pedido #${data.pedido_id}.</p>
+                            <img src="data:image/jpeg;base64,${data.qr_code_base64}" style="width: 250px; height: 250px; border-radius: 16px; border: 2px solid var(--primary); padding: 10px;" class="mb-4 shadow-sm">
+                            <h6 class="fw-bold small text-muted mb-2">OU COPIE O CÓDIGO PIX</h6>
+                            <div class="input-group mb-4 shadow-sm">
+                                <input type="text" class="form-control bg-light" id="pixCopiaCola" value="${data.qr_code_copia_cola}" readonly>
+                                <button class="btn btn-dark fw-bold px-4" onclick="copiarPix()">COPIAR</button>
+                            </div>
+                            <button class="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold shadow mt-2" onclick="window.location.href='/loja/${data.slug_loja}/rastreio/${data.id_rastreio}/'">
+                                JÁ PAGUEI! ACOMPANHAR PEDIDO <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    `;
+                } else { 
+                    modalCheckout.hide(); 
+                    window.location.href = `/loja/${data.slug_loja}/rastreio/${data.id_rastreio}/`; 
+                }
+            } else { 
+                alert('Erro: ' + data.msg); 
+                btn.disabled = false; btn.innerHTML = txtOriginal; 
+            }
+        }).catch(() => { alert('Erro de conexão com o servidor.'); btn.disabled = false; btn.innerHTML = txtOriginal; });
+    }
+    
+    function copiarPix() {
+        const input = document.getElementById("pixCopiaCola"); input.select(); document.execCommand("copy");
+        const btn = event.target; btn.innerText = "COPIADO!"; btn.classList.replace("btn-dark", "btn-success");
+        setTimeout(() => { btn.innerText = "COPIAR"; btn.classList.replace("btn-success", "btn-dark"); }, 2000);
+    }
+</script>
+{% endblock %}

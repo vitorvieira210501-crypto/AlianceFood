@@ -1,0 +1,24 @@
+<div class="col-header text-warning-emphasis">
+    <span>🔥 Na Cozinha</span>
+    <span class="badge bg-warning text-dark">{{ pedidos_cozinha.count }}</span>
+</div>
+
+{% for p in pedidos_cozinha %}
+<div class="order-card oc-prep">
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">#{{ p.id }} {{ p.cliente_nome|truncatechars:10 }}</span>
+        <a href="{% url 'imprimir_cupom' p.id %}" target="_blank" class="btn-print" title="Imprimir Cupom">
+            <i class="fas fa-print"></i>
+        </a>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-1">
+            <small class="text-muted">{{ p.criado_em|date:"H:i" }}</small>
+            <small class="text-warning fw-bold">Preparo</small>
+    </div>
+    <div class="progress mt-2" style="height: 4px;">
+        <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+    </div>
+</div>
+{% empty %}
+<div class="text-center text-muted small mt-4">Cozinha livre</div>
+{% endfor %}

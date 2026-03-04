@@ -1,0 +1,18 @@
+<div class="col-md-4">
+    <div class="kpi-card kpi-green">
+        <div class="kpi-label"><i class="fas fa-dollar-sign me-1"></i> Faturamento Hoje</div>
+        <div class="kpi-val">R$ {{ fat_hoje|floatformat:2 }}</div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-label"><i class="fas fa-receipt me-1"></i> Pedidos Hoje</div>
+        <div class="kpi-val">{{ pedidos_hoje }}</div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="kpi-card kpi-purple">
+        <div class="kpi-label"><i class="fas fa-chart-line me-1"></i> Ticket Médio</div>
+        <div class="kpi-val">R$ {{ ticket_medio|floatformat:2 }}</div>
+    </div>
+</div>

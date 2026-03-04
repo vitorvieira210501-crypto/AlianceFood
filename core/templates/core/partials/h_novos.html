@@ -1,0 +1,21 @@
+<div class="col-header text-primary">
+    <span>🔔 Novos</span>
+    <span class="badge bg-primary">{{ pedidos_novos.count }}</span>
+</div>
+
+{% for p in pedidos_novos %} 
+<div class="order-card oc-novo">
+    <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">#{{ p.id }} {{ p.cliente_nome|truncatechars:10 }}</span>
+        <a href="{% url 'imprimir_cupom' p.id %}" target="_blank" class="btn-print" title="Imprimir Cupom">
+            <i class="fas fa-print"></i>
+        </a>
+    </div>
+    <div class="small text-muted mt-2 d-flex justify-content-between">
+        <span>{{ p.get_origem_display }}</span>
+        <span class="fw-bold text-dark">R$ {{ p.total }}</span>
+    </div>
+</div>
+{% empty %}
+<div class="text-center text-muted small mt-4">Nenhum pedido novo</div>
+{% endfor %}

@@ -1,0 +1,39 @@
+<div class="p-3 bg-white border-bottom fw-bold d-flex justify-content-between align-items-center">
+    <span>🛵 Motoboys na Rua</span>
+    <span class="badge bg-dark">{{ entregas_rua.count }}</span>
+</div>
+<div class="table-responsive">
+    <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light small text-uppercase">
+            <tr>
+                <th>Pedido</th>
+                <th>Entregador</th>
+                <th>Tempo</th>
+                <th>Destino</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in entregas_rua %}
+            <tr>
+                <td><span class="fw-bold">#{{ p.id }}</span></td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width: 25px; height: 25px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-helmet-safety text-muted small"></i>
+                        </div>
+                        {{ p.entregador.nome|default:"--" }}
+                    </div>
+                </td>
+                <td class="text-danger fw-bold">{{ p.atualizado_em|timesince }}</td>
+                <td class="small text-truncate" style="max-width: 150px;" title="{{ p.endereco_entrega }}">
+                    {{ p.endereco_entrega|default:"Balcão" }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center py-5 text-muted">Todos os entregadores disponíveis.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

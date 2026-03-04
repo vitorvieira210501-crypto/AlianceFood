@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cupom #{{ pedido.id }}</title>
+    <style>
+        /* Estilo exato para bobinas térmicas de 80mm ou 58mm */
+        @page { margin: 0; size: auto; }
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 12px; 
+            width: 300px; /* Ajuste para 58mm (aprox 200px) ou 80mm (aprox 300px) */
+            margin: 0 auto; 
+            padding: 10px;
+            color: black;
+        }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .divider { border-bottom: 1px dashed black; margin: 8px 0; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 2px 0; }
+        .right { text-align: right; }
+    </style>
+</head>
+<body>
+
+    <div class="center bold" style="font-size: 16px;">SALGADINHO LANCHES</div>
+    <div class="center">O melhor sabor da cidade</div>
+    <div class="center">Data: {{ data_hora }}</div>
+    
+    <div class="divider"></div>
+    
+    <div class="bold" style="font-size: 14px;">PEDIDO #{{ pedido.id }}</div>
+    <div>Cliente: {{ pedido.cliente_nome }}</div>
+    {% if pedido.origem == 'SITE' or pedido.origem == 'BALCAO' %}
+        <div>Origem: {{ pedido.origem }}</div>
+        {% if pedido.endereco_entrega %}
+            <div>Endereço: {{ pedido.endereco_entrega }}</div>
+        {% endif %}
+    {% else %}
+        <div class="bold" style="font-size: 16px;">MESA: {{ pedido.mesa.numero }}</div>
+    {% endif %}
+
+    <div class="divider"></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Qtd</th>
+                <th>Item</th>
+                <th class="right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in pedido.itens.all %}
+            <tr>
+                <td valign="top">{{ item.quantidade }}x</td>
+                <td>
+                    {{ item.produto.nome }}
+                    {% if item.adicionais.exists %}
+                        <br>
+                        <small>
+                        {% for add in item.adicionais.all %}
+                            + {{ add.nome }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        </small>
+                    {% endif %}
+                    {% if item.observacao %}
+                        <br><small class="bold">OBS: {{ item.observacao }}</small>
+                    {% endif %}
+                </td>
+                <td class="right" valign="top">R$ {{ item.preco_unitario }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="divider"></div>
+    
+    <table>
+        <tr>
+            <td class="bold" style="font-size: 14px;">TOTAL:</td>
+            <td class="right bold" style="font-size: 14px;">R$ {{ pedido.total|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>Pagamento:</td>
+            <td class="right">{{ pedido.forma_pagamento }}</td>
+        </tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="center">*** Obrigado pela preferência! ***</div>
+    <br><br><br> <script>
+        window.onload = function() {
+            window.print();
+        }
+        // Quando a impressão terminar (ou for cancelada), fecha a abinha sozinha
+        window.onafterprint = function() {
+            window.close();
+        }
+    </script>
+</body>
+</html>
